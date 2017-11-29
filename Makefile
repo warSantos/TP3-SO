@@ -29,7 +29,7 @@ DEPS = $(SRCS:$(SDIR)/%.c=$(ODIR)/%.d)
 
 
 all: mkobj	$(OBJS)
-	$(COMPILE) $(OBJS) main.c -o main.out $(LIBRARIES)
+	$(COMPILE) $(OBJS) main.c -o fat $(LIBRARIES)
 
 
 mkobj:
@@ -43,4 +43,4 @@ $(ODIR)/%.o: $(SDIR)/%.c
 
 .PHONY : clean
 clean:
-	-rm *.d obj/*
+	-rm -rf *.d obj/*
