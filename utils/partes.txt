@@ -1,0 +1,37 @@
+# Divisão do trabalho.
+
+# João 1
+# Millas 2
+# Welton 3
+
+#status
+	
+	pronto
+	corrigir
+	falta fazer
+
+# Rotinas (chamadas do shell).
+
+	init - corrigir.
+	load - falta fazer.
+	ls - falta fazer.
+	mkdir - falta fazer.
+	create - falta fazer.
+		*OBS: colocar o diretório '..' apontando para o bloco do pái.
+	unlink - falta fazer.
+	write - falta fazer.
+	append - falta fazer.
+	read - falta fazer.
+	cd - falta fazer.
+	
+# Função de suporte.
+	
+	formtatador de caminho absoluto.
+		
+		Ex.: create /temp/log.txt
+		
+	sistema de persistência da fat.
+	
+	mapeamento de blocos livres e consequentemente usado.
+	
+	gerador de teste.

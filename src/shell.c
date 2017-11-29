@@ -72,7 +72,7 @@ int format(char *str, char ***comandos){
 
 void shell(void){
 	
-	char str[1000];	
+	char str[1000];
 	char **comando;	
 
 	printf("> ");
@@ -97,11 +97,9 @@ void shell(void){
 	}else if(!strcmp("read", comando[0])){
 		print("read")
 	}else if(!strcmp("quit", comando[0])){
-
 		printf("Have a nice day!\n");
 		exit(0);
-	}else{
-		
+	}else{		
 		printf("comando %s não encontrado.\n", comando[0]);
 	}
 }
