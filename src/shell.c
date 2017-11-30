@@ -69,19 +69,42 @@ int format(char *str, char ***comandos){
 	// retorna a quantidade de parâmetros.
 	return j;
 }
+/*
+	#### DEBUG PARA FINDCLUSTER ####
+	int bloco = 0;
+	while((*str) != '\0'){
 
+		bloco = findCluster(&str, bloco);
+		printf("%s\n", str);
+		getchar();
+	}
+	return;
+*/
 void shell(void){
 	
-	char str[1000];
+	char *str = malloc(1001);
+	str[1000] = '\0';
 	char **comando;	
 
 	printf("> ");
 	scanf("%[^\n]", str);
 	__fpurge(stdin);
+
+	//#### DEBUG PARA FINDCLUSTER ####
+	int bloco = 0;
+	while((*str) != '\0'){
+
+		bloco = findCluster(&str, bloco);
+		printf("%s\n", str);
+		printf("str [FINAL] %c\n", (*str));
+		getchar();
+	}
+	return;
 	int parametros = format(str, &comando);
 
 	if(!strcmp("init", comando[0])){		
-		print("init")
+		//print("init")
+		init();
 	}else if(!strcmp("load", comando[0])){
 		print("load")
 	}else if(!strcmp("ls", comando[0])){
@@ -102,4 +125,5 @@ void shell(void){
 	}else{		
 		printf("comando %s não encontrado.\n", comando[0]);
 	}
+	free(str);
 }

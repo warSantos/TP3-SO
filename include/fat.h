@@ -48,6 +48,13 @@ data_cluster clusters[4086];
 /// diretório atual no shell.
 char pwd[200];
 
+/*
+ * Recebe um caminho e o bloco atual deste caminho. 
+ * retorna o bloco do próximo diretório ou arquivo
+ * e também o restante da string.
+*/
+int findCluster(char **path, int bloco_atual);
+
 void init();
 
 void load();
