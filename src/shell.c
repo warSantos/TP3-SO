@@ -69,17 +69,7 @@ int format(char *str, char ***comandos){
 	// retorna a quantidade de parâmetros.
 	return j;
 }
-/*
-	#### DEBUG PARA FINDCLUSTER ####
-	int bloco = 0;
-	while((*str) != '\0'){
 
-		bloco = findCluster(&str, bloco);
-		printf("%s\n", str);
-		getchar();
-	}
-	return;
-*/
 void shell(void){
 	
 	char *str = malloc(1001);
@@ -90,36 +80,27 @@ void shell(void){
 	scanf("%[^\n]", str);
 	__fpurge(stdin);
 
-	//#### DEBUG PARA FINDCLUSTER ####
-	int bloco = 0;
-	while((*str) != '\0'){
-
-		bloco = findCluster(&str, bloco);
-		printf("%s\n", str);
-		printf("str [FINAL] %c\n", (*str));
-		getchar();
-	}
-	return;
 	int parametros = format(str, &comando);
 
 	if(!strcmp("init", comando[0])){		
-		//print("init")
+		
 		init();
 	}else if(!strcmp("load", comando[0])){
-		print("load")
+		
 	}else if(!strcmp("ls", comando[0])){
-		print("ls")
+		
 	}else if(!strcmp("create", comando[0])){
-		print("create")
+		
 	}else if(!strcmp("unlink", comando[0])){		
-		print("ulink")
+		
 	}else if(!strcmp("write", comando[0])){
-		print("write")
+		
 	}else if(!strcmp("append", comando[0])){
-		print("append")
+		
 	}else if(!strcmp("read", comando[0])){
-		print("read")
+		
 	}else if(!strcmp("quit", comando[0])){
+		
 		printf("Have a nice day!\n");
 		exit(0);
 	}else{		

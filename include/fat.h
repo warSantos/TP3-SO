@@ -46,17 +46,43 @@ dir_entry_t root_dir[ENTRY_BY_CLUSTER];
 data_cluster clusters[4086];
 
 /// diretório atual no shell.
-char pwd[200];
+char pwd[500];
+
+/// define o cluster atual (para fins de otimização).
+int cluster_atual;
 
 /*
  * Recebe um caminho e o bloco atual deste caminho. 
  * retorna o bloco do próximo diretório ou arquivo
  * e também o restante da string.
+ * ex.: /home/user home == bloco 5
+ * 
+ * ### RETORNO ###
+ * -1: representa o bloco do diretório root
+ * -2: caminho inválido.
+ * -3: caminho válido, porém arquivo ou diretório inexiste.
+ * >= 0: arquivo existente.
 */
-int findCluster(char **path, int bloco_atual);
+
+int findCluster(char **path, int bloco_atual, char atribute, int *ptr_enter);
 
 void init();
 
 void load();
+
+/*
+ * verifica se existe espaço para inserir mais uma entrada no diretório.
+ * ### RETORNO ###
+ * >=2, <32: posição vázia.
+ * -1: não existe mais posições livres 
+*/
+int free_enter(dir_entry_t *t);
+
+/*
+ * Recebe o caminho e o nome do diretório a ser criado.
+ * Se nenhum caminho for passado antes do diretório,
+ * o diretório base é tomado como referência.
+*/
+void mkdir(char *arg);
 
 #endif
