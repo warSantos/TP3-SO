@@ -2,57 +2,52 @@
 
 int format(char *str, char ***comandos){
 	
-	int i = 0, j = 0, bkp;
-	
+	int i = 0, j = 0, bkp, set = 0;	
 	// removendo espaços antes do comando
 	while(str[i] == ' ' && str[i] != '\0'){
 		
 		i++;
-	}
-	
-	// verifica se o usuário ficou digitando enter atoa
+	}		
+	// verifica se a entrada esta vazia.
 	if(str[i] == '\0'){ 
-		// Comando vazio.
-		
+		// Comando vazio.		
 		return -1;
 	}
-	
-	// marcando o inicio válido da string.
+	// copiando o inicio válido da string.
 	bkp = i;
-	
 	// identificando a quantidade de argumentos.
 	while(str[i] != '\0'){
 		
-		if(str[i] == ' '){
+		if(str[i] == ' '){					
 			
-			j++;
-		}
+			set = 1;			
+		}else if(set && str[i] != ' '){
+
+			set = 0;
+			j++;			
+		}	
 		++i;
 	}
-	j++;
-	
+	j++;	
 	*comandos = malloc(sizeof(char *) * j);
-	
 	// separando os comandos.
-	char temp[500];
 	int indice = -1, cont = 0;;
 	i = bkp;
+	char *temp = malloc(500);
 	while(1){
 		
 		if(str[i] != ' ' && str[i] != '\0'){
-					
-			temp[cont] = str[i];	
+								
+			temp[cont] = str[i];
 		}else{
-	
-			temp[i] = '\0';
-			indice++;			
-			(*comandos)[indice] = malloc(sizeof(char) * (strlen(temp)+1));
 			
+			temp[cont] = '\0';
+			indice++;			
+			(*comandos)[indice] = malloc(sizeof(char) * (strlen(temp) + 1));			
 			/* copiando a string para sua respectiva posição na
 			cadeia de comandos */
 			strcpy((*comandos)[indice], temp);
 			cont = -1;
-
 			// removendo excesso de espaços entre arguemtos.
 			while(str[i + 1] != '\0' && str[i + 1] == ' '){
 				
@@ -61,7 +56,7 @@ int format(char *str, char ***comandos){
 			if(str[i] == '\0'){
 
 				break;
-			}
+			}			
 		}
 		++i;
 		++cont;
@@ -72,7 +67,7 @@ int format(char *str, char ***comandos){
 
 void shell(void){
 	
-	char *str = malloc(1001);
+	char *str = calloc(1, 1001);
 	str[1000] = '\0';
 	char **comando;	
 
@@ -80,15 +75,14 @@ void shell(void){
 	scanf("%[^\n]", str);
 	__fpurge(stdin);
 
-	int parametros = format(str, &comando);
-
-	if(!strcmp("init", comando[0])){		
-		
+	int parametros = format(str, &comando);	
+	if(!strcmp("init", comando[0])){				
 		init();
 	}else if(!strcmp("load", comando[0])){
-		
+		load();
 	}else if(!strcmp("ls", comando[0])){
-		
+		char o = '-'; // parâmetro para arquivos ocultos.		
+		ls(comando[1], o);		
 	}else if(!strcmp("create", comando[0])){
 		
 	}else if(!strcmp("unlink", comando[0])){		
@@ -107,4 +101,5 @@ void shell(void){
 		printf("comando %s não encontrado.\n", comando[0]);
 	}
 	free(str);
+	free(comando);
 }

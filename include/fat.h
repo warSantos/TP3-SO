@@ -14,6 +14,8 @@
 #define CLUSTER_SIZE	2 * SECTOR_SIZE /// 1024
 #define ENTRY_BY_CLUSTER CLUSTER_SIZE /sizeof(dir_entry_t) /// 32
 #define NUM_CLUSTER	4096
+/// marca o cluster inicial do espaço de dados.
+#define CLUSTER_DATA (sizeof(boot_block) + sizeof(fat) + sizeof(root_dir))
 #define fat_name	"fat.part"
 
 typedef struct _dir_entry_t
@@ -51,6 +53,9 @@ char pwd[500];
 /// define o cluster atual (para fins de otimização).
 int cluster_atual;
 
+/// similar a strtok porém preserva a string.
+char *__strtok(char *str, char delim);
+
 /*
  * Recebe um caminho e o bloco atual deste caminho. 
  * retorna o bloco do próximo diretório ou arquivo
@@ -59,16 +64,35 @@ int cluster_atual;
  * 
  * ### RETORNO ###
  * -1: representa o bloco do diretório root
- * -2: caminho inválido.
- * -3: caminho válido, porém arquivo ou diretório inexiste.
+ * -2: caminho válido, porém arquivo ou diretório inexiste.
+ * -3: caminho inválido.
  * >= 0: arquivo existente.
 */
+int findCluster(char **path, int bloco_atual, int *ptr_enter);
 
-int findCluster(char **path, int bloco_atual, char atribute, int *ptr_enter);
+/* 
+ * Faz leitura de um cluster do "disco".
+ * ### RETORNO ###
+ * retornar um ponteiro data_cluster *,
+ * ou NULL caso o endereço vá para fora do disco.
+*/
+data_cluster *read_cluster(int block);
 
 void init();
 
 void load();
+
+/// imprime os atributos das entradas de um diretório
+void listaDir(dir_entry_t *dir);
+
+/*
+ * Lista as entradas de diretório de um diretório.
+ * Ex.: ls /home
+ * ### PARÂMETROS ### 
+ * -o: mostra diretórios ocultos.
+ * Ex.: ls -o /home
+*/
+void ls(char *arg, char oculto);
 
 /*
  * verifica se existe espaço para inserir mais uma entrada no diretório.
