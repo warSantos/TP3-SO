@@ -124,14 +124,14 @@ int free_entry(dir_entry_t *t);
 int free_blocks(void);
 
 /// Configura os parâmetros de uma entrada de diretório.
-void set_dir_entry(dir_entry_t *parent_dir, int cluster_parent_dir, char *str, int free_entry_dir, 
-		int free_block, int size, int attributes);
+void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry, 
+		int block, int size, int attributes);
 
 /// Cria um diretório padrão. 
-dir_entry_t *new_dir(int block, int cluster_parent_dir);
+dir_entry_t *new_dir(int block, int block_parent_dir);
 
 /// Persiste um novo diretório no disco
-void create_dir(dir_entry_t *parent_dir, int cluster_parent_dir, char *str);
+void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str);
 
 /*
  * Recebe o caminho e o nome do diretório a ser criado.
@@ -139,5 +139,12 @@ void create_dir(dir_entry_t *parent_dir, int cluster_parent_dir, char *str);
  * o diretório base é tomado como referência.
 */
 void mkdir(char *arg);
+
+/*
+ * Recebe o caminho e o nome do arquivo a ser criado.
+ * Se nenhum caminho for passado antes do diretório,
+ * o diretório base é tomado como referência.
+*/
+void create_file(char *arg);
 
 #endif

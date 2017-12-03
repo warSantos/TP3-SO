@@ -72,4 +72,23 @@ void persist_on_disk(void *data, int size_data, int block){
 	fclose(ptr_file);
 }
 
+create_file
+
+se o caminho para o novo arquivo for válido
+	se nao existir arquivo com o mesmo nome
+		se for criar um arquivo na raiz
+			entao retorne root_dir
+		se nao 
+			retorne whatever
+		se existir entradas válidas
+			se existir espaço em disco
+				entao cria o arquivo
+			se nao
+				retorne erro (sem espaço em disco).
+		se nao 
+			retorne erro (sem entradas disponívies).
+	se nao entao
+		retorne erro (arquivo já existe)
+se nao 
+	retorne erro (impossível atingir tal diretório)
 

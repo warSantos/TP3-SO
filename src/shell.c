@@ -96,7 +96,7 @@ void shell(void){
 				}
 			}				
 		}else if(!strcmp("create", comando[0])){
-		
+			create_file(comando[1]);
 		}else if(!strcmp("mkdir", comando[0])){
 			mkdir(comando[1]);
 		}else if(!strcmp("unlink", comando[0])){		

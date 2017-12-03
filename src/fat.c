@@ -243,30 +243,30 @@ int free_blocks(void){
 	return -1;
 }
 
-void set_dir_entry(dir_entry_t *parent_dir, int cluster_parent_dir, char *str, int free_entry_dir,	
-	int free_block, int size, int attributes){
+void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry,	
+	int block, int size, int attributes){
 	
 	char *temp = last_token(str, '/');
-	strncpy((char *)parent_dir[free_entry_dir].filename, temp, strlen(temp)); // adicionando nome a entrada.
-	parent_dir[free_entry_dir].first_block = free_block; // adicionando bloco.
-	parent_dir[free_entry_dir].attributes = attributes; // definindo tipo do arquivo.
-	parent_dir[free_entry_dir].size = size; // definindo o tamanho do arquivo.
+	strncpy((char *)parent_dir[new_entry].filename, temp, strlen(temp)); // adicionando nome a entrada.
+	parent_dir[new_entry].first_block = block; // adicionando bloco.
+	parent_dir[new_entry].attributes = attributes; // definindo tipo do arquivo.
+	parent_dir[new_entry].size = size; // definindo o tamanho do arquivo.
 	if(parent_dir == root_dir){ // se o diretório que for receber a nova entrada for a raiz.
-		persist_on_disk(&parent_dir[free_entry_dir], ENTRY_BY_CLUSTER, ROOT_ENTRY(free_entry_dir));
+		persist_on_disk(&parent_dir[new_entry], ENTRY_BY_CLUSTER, ROOT_ENTRY(new_entry));
 	}else{ // se não for a raiz aponte para o trecho de dados.
-		persist_on_disk(&parent_dir[free_entry_dir], ENTRY_BY_CLUSTER, 
-		CLUSTER_DATA + (CLUSTER_SIZE * cluster_parent_dir) + (free_entry_dir * ENTRY_BY_CLUSTER));
+		persist_on_disk(&parent_dir[new_entry], ENTRY_BY_CLUSTER, 
+		CLUSTER_DATA + (CLUSTER_SIZE * block_parent_dir) + (new_entry * ENTRY_BY_CLUSTER));
 	}
 }
 
-dir_entry_t *new_dir(int block, int cluster_parent_dir){
+dir_entry_t *new_dir(int block, int block_parent_dir){
 	
 	dir_entry_t *new = malloc(CLUSTER_SIZE);
 	memset(new, 0x00, CLUSTER_SIZE);
 	// configurando o diretório '.'.
 	new[0].filename[0] = '.'; // definindo o nome
 	new[0].filename[1] = '\0';
-	new[0].first_block =  cluster_parent_dir; // apontando para o ele mesmo
+	new[0].first_block =  block_parent_dir; // apontando para o ele mesmo
 	new[0].size = ENTRY_BY_CLUSTER; // tamanho de 32 logo que ele só é a entrada.
 	new[0].attributes = 1; // definindo como diretório.
 	// configurando o diretório '..'.
@@ -277,26 +277,26 @@ dir_entry_t *new_dir(int block, int cluster_parent_dir){
 	return new;
 }
 
-void create_dir(dir_entry_t *parent_dir, int cluster_parent_dir, char *str){
+void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str){
 	
-	int free_entry_dir, free_block;
-	free_entry_dir = free_entry(parent_dir);
+	int new_entry, block;
+	new_entry = free_entry(parent_dir);
 	
-	if(free_entry_dir > 0){ // se existir entrada disponível.
-		free_block = free_blocks();
-		if(free_block > -1){ // se existir espaço no disco.
+	if(new_entry > 0){ // se existir entrada disponível.
+		block = free_blocks();
+		if(block > -1){ // se existir espaço no disco.
 			
 			// Adicionando a entrada no diretório pai
-			set_dir_entry(parent_dir, cluster_parent_dir, str, free_entry_dir, free_block, CLUSTER_SIZE, 1);			
+			set_dir_entry(parent_dir, block_parent_dir, str, new_entry, block, CLUSTER_SIZE, 1);			
 			// Criando diretório com configurações iniciais.
-			dir_entry_t *new_d = new_dir(free_block, cluster_parent_dir);	
+			dir_entry_t *new_d = new_dir(block, block_parent_dir);	
 			// atualizando a fat.
-			fat[free_block] = 65535; // 65535 sinaliza que este é o último bloco.			
+			fat[block] = 65535; // 65535 sinaliza que este é o último bloco.			
 			// persistindo a atualização da fat no arquivo.
-			persist_on_disk(&fat[free_block], 2, FAT_ENTRY(free_block));			
+			persist_on_disk(&fat[block], 2, FAT_ENTRY(block));
 			// persistindo o novo diretório no disco.
-			//printf("\twrite: %d/%d\n", (free_block * 1024) + CLUSTER_DATA, ((free_block * 1024) + CLUSTER_DATA)/1024);
-			persist_on_disk(new_d, CLUSTER_SIZE, (free_block * 1024) + CLUSTER_DATA);
+			//printf("\twrite: %d/%d\n", (block * 1024) + CLUSTER_DATA, ((block * 1024) + CLUSTER_DATA)/1024);
+			persist_on_disk(new_d, CLUSTER_SIZE, (block * 1024) + CLUSTER_DATA);
 			free(new_d);
 		}else{
 			printf("mkdir: não foi possível criar o diretório \"%s\""
@@ -304,7 +304,7 @@ void create_dir(dir_entry_t *parent_dir, int cluster_parent_dir, char *str){
 		}			
 	}else{
 		printf("mkdir: não foi possível criar o diretório \"%s\""
-		": Limite máximo de diretórios atingidos.\n", str);
+		": Não há entradas disponíveis neste diretório.\n", str);
 	}
 }
 
@@ -342,7 +342,7 @@ void mkdir(char *arg){
 		dir = is_root(bkp); // retorne o diretório.	
 		create_dir(dir, bkp, arg);	
 	}else if(block == 65534){ // se o diretório a ser solicitada criação for a raiz.
-
+		stage(1)
 		if(root_dir[0].filename[0] == '.'){ // se a raiz já estiver sido criada.
 			printf("mkdir: não foi possível criar o diretório \“/\”: Arquivo existe\n");
 		}else{ // se não estiver sido.
@@ -351,40 +351,56 @@ void mkdir(char *arg){
 			memcpy(root_dir, t, CLUSTER_SIZE);
 			free(t);
 		}		
-	}else{ // se o arquivo existir.
-
-		dir = is_root(bkp); // retorne o diretório.
-		if(dir[ptr_enter].attributes){ // se ele for um diretório
-			printf("mkdir: não foi possível criar o diretório \“%s\”: Arquivo existe\n", arg);
-		}else{ // se for um arquivo.
-			
-			create_dir(dir, bkp, arg);
-		}
+	}else{ // se o arquivo existir.		
+		printf("mkdir: não foi possível criar o diretório \“%s\”: Arquivo existe\n", arg);		
 	}
 }
 
-/*root_dir[2].filename[0] = 't';
-	root_dir[2].filename[1] = 'm';
-	root_dir[2].filename[2] = 'p';
-	root_dir[2].attributes = 1;
-	root_dir[2].first_block = 2000;
-	root_dir[2].size = 1024;
-	root_dir[3].filename[0] = 'u';
-	root_dir[3].filename[1] = 's';
-	root_dir[3].filename[2] = 'r';
-	root_dir[3].attributes = 1;
-	root_dir[3].first_block = 2500;
-	root_dir[3].size = 1024;
-	root_dir[4].filename[0] = 'z';
-	root_dir[4].filename[1] = 'z';
-	root_dir[4].filename[2] = 'z';
-	root_dir[4].filename[3] = 'z';
-	root_dir[4].attributes = 1;
-	root_dir[4].first_block = 3000;
-	root_dir[4].size = 1024;
-	root_dir[5].filename[0] = 'a';
-	root_dir[5].filename[1] = 'r';
-	root_dir[5].filename[2] = 'q';
-	root_dir[5].attributes = 0;
-	root_dir[5].first_block = 3500;
-	root_dir[5].size = 1024;*/
+void create_file(char *arg){
+
+	int block = current_block; // recebe o bloco atual.
+	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
+	int ptr_enter = 0; // ponterio para entrada (otimização). 
+	int new_block; // recebe o novo bloco para o arquivo a ser criado.
+	int new_entry; // recebe o a nova entrada para o arquivo a ser criado.
+	char *str = arg;
+	if(strcmp("/", str) && root_dir[0].filename[0] == 0){
+		printf("mkdir: não foi possível criar o diretório \“%s\”: Diretório raiz inexistente.\n", str);
+		return;
+	}
+	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
+						
+		bkp = block; // realizando bkp do bloco do diretório anterior.
+		block = findCluster(&str, block, &ptr_enter);
+		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);	
+	}
+	dir_entry_t *dir;
+	if(block == -3){ // se o caminho for inválido.
+		
+		printf("create: não foi possível criar '%s': Arquivo ou diretório não encontrado\n", arg);
+	}else{ // se o caminho não for válido.
+		
+		if(block == -2){ // se nao existir arquivo com mesmo nome.
+			dir = is_root(bkp);			
+			new_entry = free_entry(dir);
+			if(free_entry > 0){ // se existirem entradas disponíveis no diretório.
+				new_block = free_blocks();
+				if(new_block > -1){ // se existir bloco livre
+					set_dir_entry(dir, bkp, arg, new_entry, new_block, 0, 0);
+					// atualizando a fat.
+					fat[block] = 65535; // 65535 sinaliza que este é o último bloco.			
+					// persistindo a atualização da fat no arquivo.
+					persist_on_disk(&fat[block], 2, FAT_ENTRY(block));
+				}else{					
+					printf("create: não foi possível criar o arquivo \"%s\""
+					": Limite máximo do disco atingido.\n", str);
+				}
+			}else{				
+				printf("create: não foi possível criar o arquivo \"%s\""
+				": Não há entradas disponíveis neste diretório.\n", str);
+			}
+		}else{
+			printf("mkdir: não foi possível criar o arquivo “%s”: Arquivo existe\n", arg);
+		}
+	}
+}
