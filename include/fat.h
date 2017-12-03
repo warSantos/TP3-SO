@@ -27,7 +27,7 @@ typedef struct _dir_entry_t
 	unsigned char filename[18];
 	unsigned char attributes;
 	unsigned char reserved[7];
-	short first_block;
+	unsigned short first_block;
 	unsigned int size;
 }dir_entry_t;
 
@@ -73,7 +73,7 @@ void persist_on_disk(void *data, int size_data, int block);
  * ex.: /home/user home == bloco 5
  * 
  * ### RETORNO ###
- * -1: representa o bloco do diretório root
+ * 65534: representa o bloco do diretório root
  * -2: caminho válido, porém arquivo ou diretório inexiste.
  * -3: caminho inválido.
  * >= 0: arquivo existente.

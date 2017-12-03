@@ -81,7 +81,7 @@ void shell(void){
 			//printf("str: %s\n", str);
 		}
 		int parametros = format(str, &comando), i;	
-		printf("str: %s comando: %s\n", str, comando[0]);
+		//printf("str: %s comando: %s\n", str, comando[0]);
 		if(!strcmp("init", comando[0])){				
 			init();
 		}else if(!strcmp("load", comando[0])){

@@ -45,7 +45,7 @@ int findCluster(char **path, int block, int *ptr_enter){
 		return block;
 	}else if((*path)[0] == '/' && (*path)[1] == '\0'){ // se for o diretório raiz.
 		(*path)++; // move o ponteiro para \0.
-		return -1;
+		return 65534; // 65534 representa o diretório root.
 	}
 	int i = 0, j;
 	while((*path)[i] != '/' && (*path)[i] != '\0'){
@@ -118,7 +118,7 @@ int findCluster(char **path, int block, int *ptr_enter){
 
 data_cluster *read_cluster(int block){
 		
-	if(block == -1){ // alterando o ponteiro para o diretório root.
+	if(block == 65534){ // alterando o ponteiro para o diretório root.
 		
 		return (data_cluster *) root_dir;
 	}
@@ -179,7 +179,8 @@ void listaDir(dir_entry_t *dir){
 		if(dir[i].filename[0]){ // se existir arquivo ou diretório na respectiva entrada.
 
 			if(dir[i].filename[0] /*== '.' && oculto == 'o'*/){ // se for um diretório oculto.				
-				printf("%s\t", dir[i].filename);
+				printf("%s : %d\t", dir[i].filename, dir[i].first_block);
+				//printf("%s\t", dir[i].filename);
 			}else {				
 				printf("%s : %d\t", dir[i].filename, dir[i].first_block);
 			}
@@ -205,10 +206,10 @@ void ls(char *arg, char oculto){
 	if(block < -1){ // se o caminho até o arquivo for inválido.
 		
 		printf("ls: não foi possível acessar '%s': Arquivo ou diretório não encontrado\n", arg);
-	}else if(block == -1){ // se for para listar a raiz
+	}else if(block == 65534){ // se for para listar a raiz
 
 		listaDir(root_dir); // lista a raiz.
-	}else if(block > -1){// se não for a raiz.
+	}else if(block > -1){// se for válido e não for a raiz.
 		dir = is_root(bkp); // retorne o diretório.
 		if(dir[ptr_enter].attributes == 1){	// se a entrada corresponder a um diretório.	
 			dir = (dir_entry_t *) read_cluster(block); // aponte para o diretório da respectiva entrada.
@@ -338,22 +339,23 @@ void mkdir(char *arg){
 		printf("mkdir: não foi possível criar o diretório “%s”: Arquivo ou diretório não encontrado.\n", arg);
 	}else if(block == -2){ // se o caminho até o arquivo for válido porém o arquivo não existir
 		
-		dir = is_root(bkp); // retorne o diretório.				
-		create_dir(dir, bkp, arg);		
-	}else if(block == -1){ // se o diretório a ser solicitada criação for a raiz.		
+		dir = is_root(bkp); // retorne o diretório.	
+		create_dir(dir, bkp, arg);	
+	}else if(block == 65534){ // se o diretório a ser solicitada criação for a raiz.
 
 		if(root_dir[0].filename[0] == '.'){ // se a raiz já estiver sido criada.
 			printf("mkdir: não foi possível criar o diretório \“/\”: Arquivo existe\n");
 		}else{ // se não estiver sido.
 			// configurando o diretório root.
-			dir_entry_t *t = new_dir( -1, -1);
+			dir_entry_t *t = new_dir( 65534, 65534);
 			memcpy(root_dir, t, CLUSTER_SIZE);
 			free(t);
 		}		
-	}else{ // se o arquivo existir		
+	}else{ // se o arquivo existir.
+
 		dir = is_root(bkp); // retorne o diretório.
 		if(dir[ptr_enter].attributes){ // se ele for um diretório
-			printf("mkdir: não foi possível criar o diretório \“%s\”: Arquivo existe\n", arg);	
+			printf("mkdir: não foi possível criar o diretório \“%s\”: Arquivo existe\n", arg);
 		}else{ // se for um arquivo.
 			
 			create_dir(dir, bkp, arg);
