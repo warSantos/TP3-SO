@@ -38,11 +38,11 @@ char *last_token(char *str, char delim){
 	return temp;
 }
 
-int findCluster(char **path, int bloco_atual, int *ptr_enter){
+int findCluster(char **path, int block, int *ptr_enter){
 		
 	if(*path == NULL){ // se for NULL então retorne o bloco do diretório corrente.
 		
-		return bloco_atual;
+		return block;
 	}else if((*path)[0] == '/' && (*path)[1] == '\0'){ // se for o diretório raiz.
 		(*path)++; // move o ponteiro para \0.
 		return -1;
@@ -95,7 +95,7 @@ int findCluster(char **path, int bloco_atual, int *ptr_enter){
 			(*path)++;
 		}
 		// se achou o arquivo ou diretório retorne o bloco dele.
-		dir_entry_t *dir = (dir_entry_t *) read_cluster(bloco_atual);
+		dir_entry_t *dir = (dir_entry_t *) read_cluster(block);
 		while(j < 32){
 			
 			if(!strcmp(temp, (char *) dir[j].filename) &&
@@ -139,8 +139,6 @@ dir_entry_t *is_root(int block){
 	return (dir_entry_t *) read_cluster(block);
 }
 
-// escrever no arquivo.
-/*rb+*/
 void init(){
 
 	FILE* ptr_file;
@@ -156,33 +154,7 @@ void init(){
 
 	fwrite(&fat, sizeof(fat), 1, ptr_file);
 
-    memset(root_dir, 0x00, sizeof(root_dir));
-	/*root_dir[2].filename[0] = 't';
-	root_dir[2].filename[1] = 'm';
-	root_dir[2].filename[2] = 'p';
-	root_dir[2].attributes = 1;
-	root_dir[2].first_block = 2000;
-	root_dir[2].size = 1024;
-	root_dir[3].filename[0] = 'u';
-	root_dir[3].filename[1] = 's';
-	root_dir[3].filename[2] = 'r';
-	root_dir[3].attributes = 1;
-	root_dir[3].first_block = 2500;
-	root_dir[3].size = 1024;
-	root_dir[4].filename[0] = 'z';
-	root_dir[4].filename[1] = 'z';
-	root_dir[4].filename[2] = 'z';
-	root_dir[4].filename[3] = 'z';
-	root_dir[4].attributes = 1;
-	root_dir[4].first_block = 3000;
-	root_dir[4].size = 1024;
-	root_dir[5].filename[0] = 'a';
-	root_dir[5].filename[1] = 'r';
-	root_dir[5].filename[2] = 'q';
-	root_dir[5].attributes = 0;
-	root_dir[5].first_block = 3500;
-	root_dir[5].size = 1024;*/
-
+    memset(root_dir, 0x00, sizeof(root_dir));	
 	fwrite(&root_dir, sizeof(root_dir), 1, ptr_file);
 
     memset(clusters, 0x00, sizeof(clusters));
@@ -203,17 +175,14 @@ void load(){
 
 void listaDir(dir_entry_t *dir){
 	int i;
-	for(i = 0; i < 32; ++i){
-			
+	for(i = 0; i < 32; ++i){			
 		if(dir[i].filename[0]){ // se existir arquivo ou diretório na respectiva entrada.
 
-			// if(dir[i].filename[0] /*== '.' && oculto == 'o'*/){ // se for um diretório oculto.
-				
-			//	printf("%s\t", dir[i].filename);
-			//}else {
-				// imprime diretório.
+			if(dir[i].filename[0] /*== '.' && oculto == 'o'*/){ // se for um diretório oculto.				
+				printf("%s\t", dir[i].filename);
+			}else {				
 				printf("%s : %d\t", dir[i].filename, dir[i].first_block);
-			//}
+			}
 		}
 	}
 	printf("\n");
@@ -221,10 +190,9 @@ void listaDir(dir_entry_t *dir){
 
 void ls(char *arg, char oculto){
 
-	int block = cluster_atual; // recebe o cluster atual.
+	int block = current_block; // recebe o bloco atual.
 	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
 	int ptr_enter = 0; // ponterio para entrada (otimização). 
-	int i;
 	char *str = arg;
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho e não achar nada inválido.
 						
@@ -326,7 +294,7 @@ void create_dir(dir_entry_t *parent_dir, int cluster_parent_dir, char *str){
 			// persistindo a atualização da fat no arquivo.
 			persist_on_disk(&fat[free_block], 2, FAT_ENTRY(free_block));			
 			// persistindo o novo diretório no disco.
-			printf("\twrite: %d/%d\n", (free_block * 1024) + CLUSTER_DATA, ((free_block * 1024) + CLUSTER_DATA)/1024);
+			//printf("\twrite: %d/%d\n", (free_block * 1024) + CLUSTER_DATA, ((free_block * 1024) + CLUSTER_DATA)/1024);
 			persist_on_disk(new_d, CLUSTER_SIZE, (free_block * 1024) + CLUSTER_DATA);
 			free(new_d);
 		}else{
@@ -351,12 +319,10 @@ void persist_on_disk(void *data, int size_data, int block){
 
 void mkdir(char *arg){
 
-	int block = cluster_atual; // recebe o cluster atual.
+	int block = current_block; // recebe o bloco atual.
 	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
 	int ptr_enter = 0; // ponterio para entrada (otimização). 
-	int i;
 	char *str = arg;
-
 	if(strcmp("/", str) && root_dir[0].filename[0] == 0){
 		printf("mkdir: não foi possível criar o diretório \“%s\”: Diretório raiz inexistente.\n", str);
 		return;
@@ -375,7 +341,7 @@ void mkdir(char *arg){
 		dir = is_root(bkp); // retorne o diretório.				
 		create_dir(dir, bkp, arg);		
 	}else if(block == -1){ // se o diretório a ser solicitada criação for a raiz.		
-		
+
 		if(root_dir[0].filename[0] == '.'){ // se a raiz já estiver sido criada.
 			printf("mkdir: não foi possível criar o diretório \“/\”: Arquivo existe\n");
 		}else{ // se não estiver sido.
@@ -384,8 +350,7 @@ void mkdir(char *arg){
 			memcpy(root_dir, t, CLUSTER_SIZE);
 			free(t);
 		}		
-	}else{ // se o arquivo existir
-		
+	}else{ // se o arquivo existir		
 		dir = is_root(bkp); // retorne o diretório.
 		if(dir[ptr_enter].attributes){ // se ele for um diretório
 			printf("mkdir: não foi possível criar o diretório \“%s\”: Arquivo existe\n", arg);	
@@ -395,13 +360,29 @@ void mkdir(char *arg){
 		}
 	}
 }
-/*
-typedef struct _dir_entry_t
-{
-	unsigned char filename[18];
-	unsigned char attributes;
-	unsigned char reserved[7];
-	unsigned short first_block;
-	unsigned int size;
-}dir_entry_t;
-*/
+
+/*root_dir[2].filename[0] = 't';
+	root_dir[2].filename[1] = 'm';
+	root_dir[2].filename[2] = 'p';
+	root_dir[2].attributes = 1;
+	root_dir[2].first_block = 2000;
+	root_dir[2].size = 1024;
+	root_dir[3].filename[0] = 'u';
+	root_dir[3].filename[1] = 's';
+	root_dir[3].filename[2] = 'r';
+	root_dir[3].attributes = 1;
+	root_dir[3].first_block = 2500;
+	root_dir[3].size = 1024;
+	root_dir[4].filename[0] = 'z';
+	root_dir[4].filename[1] = 'z';
+	root_dir[4].filename[2] = 'z';
+	root_dir[4].filename[3] = 'z';
+	root_dir[4].attributes = 1;
+	root_dir[4].first_block = 3000;
+	root_dir[4].size = 1024;
+	root_dir[5].filename[0] = 'a';
+	root_dir[5].filename[1] = 'r';
+	root_dir[5].filename[2] = 'q';
+	root_dir[5].attributes = 0;
+	root_dir[5].first_block = 3500;
+	root_dir[5].size = 1024;*/

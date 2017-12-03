@@ -27,7 +27,7 @@ typedef struct _dir_entry_t
 	unsigned char filename[18];
 	unsigned char attributes;
 	unsigned char reserved[7];
-	unsigned short first_block;
+	short first_block;
 	unsigned int size;
 }dir_entry_t;
 
@@ -55,7 +55,7 @@ data_cluster clusters[4086];
 char pwd[500];
 
 /// Define o cluster atual (para fins de otimização).
-int cluster_atual;
+int current_block;
 
 /// Similar a strtok porém preserva a string.
 char *__strtok(char *str, char delim);

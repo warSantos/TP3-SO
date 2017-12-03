@@ -67,17 +67,21 @@ int format(char *str, char ***comandos){
 
 void shell(void){
 	
+	char *str = calloc(1, 1001);
+	
 	while(1){
 
-		char *str = calloc(1, 1001);
-		str[1000] = '\0';
-		char **comando;	
-
-		printf("> ");
-		scanf("%[^\n]", str);
-		__fpurge(stdin);
-
+		str[0] = '\0';
+		char **comando;		
+		while(str[0] == '\0'){	
+			
+			printf("> ");
+			scanf("%[^\n]", str);
+			__fpurge(stdin);
+			//printf("str: %s\n", str);
+		}
 		int parametros = format(str, &comando), i;	
+		printf("str: %s comando: %s\n", str, comando[0]);
 		if(!strcmp("init", comando[0])){				
 			init();
 		}else if(!strcmp("load", comando[0])){
@@ -109,8 +113,7 @@ void shell(void){
 			exit(0);
 		}else{		
 			printf("comando %s não encontrado.\n", comando[0]);
-		}
-		free(str);
+		}	
 		free(comando);
 	}
 }
