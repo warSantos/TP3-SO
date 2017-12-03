@@ -15,7 +15,7 @@
 #define ENTRY_BY_CLUSTER CLUSTER_SIZE /sizeof(dir_entry_t) /// 32
 #define NUM_CLUSTER	4096
 /// marca o cluster inicial do espaço de dados.
-#define CLUSTER_DATA (sizeof(boot_block) + sizeof(fat) + sizeof(root_dir))
+#define CLUSTER_DATA (sizeof(boot_block) + sizeof(fat)  + sizeof(root_dir))
 /// Mapeia posição de blocos em bytes da fat no disco através do id de um bloco.
 #define FAT_ENTRY(ENTRY_BLOCK) (sizeof(boot_block) + (2 * ENTRY_BLOCK))
 /// Mapeia entrada de diretórios da raiz no disco.

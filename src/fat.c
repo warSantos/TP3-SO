@@ -54,7 +54,7 @@ int findCluster(char **path, int bloco_atual, int *ptr_enter){
 	}
 	char delim = '/';
 	char *temp;
-	j = 2;
+	j = 0;
 	if(!i){ // se for um caminho absoluto.
 		
 		(*path)++;  // move o ponteiro de path para depois da barra				
@@ -63,10 +63,8 @@ int findCluster(char **path, int bloco_atual, int *ptr_enter){
 			
 			if((*path)[0] == '/'){
 				(*path)++;
-				stage(1)
 				break;
-			}else if((*path)[0] == '\0'){
-				stage(2)
+			}else if((*path)[0] == '\0'){				
 				break;
 			}
 			(*path)++;
@@ -96,9 +94,10 @@ int findCluster(char **path, int bloco_atual, int *ptr_enter){
 			}
 			(*path)++;
 		}
+		// se achou o arquivo ou diretório retorne o bloco dele.
+		dir_entry_t *dir = (dir_entry_t *) read_cluster(bloco_atual);
 		while(j < 32){
-			// se achou o arquivo ou diretório retorne o bloco dele.			
-			dir_entry_t *dir = (dir_entry_t *) read_cluster(bloco_atual);
+			
 			if(!strcmp(temp, (char *) dir[j].filename) &&
 				((*path)[0] == '\0' || dir[j].attributes == 1)){
 				// se existir arquivo com o mesmo nome e ele for um diretório ou um arquivo no final do caminho,
@@ -127,9 +126,9 @@ data_cluster *read_cluster(int block){
 	FILE *ptr_file = fopen(fat_name, "rb");
 	data_cluster *d;
 	d = malloc(CLUSTER_SIZE);
-	printf("read: %d\n", CLUSTER_DATA + (block * CLUSTER_SIZE));
+	printf("\tread: %d/\n", CLUSTER_DATA + (block * CLUSTER_SIZE), (CLUSTER_DATA + (block * CLUSTER_SIZE)) / 1024);
 	fseek(ptr_file, CLUSTER_DATA + (block * CLUSTER_SIZE), SEEK_SET);
-	fwrite(ptr_file, sizeof(CLUSTER_SIZE), 1, d);
+	fread(d, CLUSTER_SIZE, 1, ptr_file);
 	fclose(ptr_file);
 	//listaDir((dir_entry_t *)d);
 	return d;
@@ -184,7 +183,6 @@ void init(){
 	root_dir[5].first_block = 3500;
 	root_dir[5].size = 1024;*/
 
-	printf("sr: %d\n", sizeof(root_dir));
 	fwrite(&root_dir, sizeof(root_dir), 1, ptr_file);
 
     memset(clusters, 0x00, sizeof(clusters));
@@ -228,11 +226,11 @@ void ls(char *arg, char oculto){
 	int ptr_enter = 0; // ponterio para entrada (otimização). 
 	int i;
 	char *str = arg;
-	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
+	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho e não achar nada inválido.
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
 		block = findCluster(&str, block, &ptr_enter);
-		printf("str: %s, bloco: %d, bkp: %d\n", str, block, bkp);
+		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);
 		//getchar();
 	}
 	dir_entry_t *dir;
@@ -242,10 +240,9 @@ void ls(char *arg, char oculto){
 	}else if(block == -1){ // se for para listar a raiz
 
 		listaDir(root_dir); // lista a raiz.
-	}else if(block > 0){
-		
+	}else if(block > -1){// se não for a raiz.
 		dir = is_root(bkp); // retorne o diretório.
-		if(dir[ptr_enter].attributes){	// se a entrada corresponder a um diretório.	
+		if(dir[ptr_enter].attributes == 1){	// se a entrada corresponder a um diretório.	
 			dir = (dir_entry_t *) read_cluster(block); // aponte para o diretório da respectiva entrada.
 			listaDir(dir); // imprima o diretório.
 		}else{
@@ -299,13 +296,15 @@ dir_entry_t *new_dir(int block, int cluster_parent_dir){
 	memset(new, 0x00, CLUSTER_SIZE);
 	// configurando o diretório '.'.
 	new[0].filename[0] = '.'; // definindo o nome
-	new[0].first_block = block; // apontando para o ele mesmo
+	new[0].filename[1] = '\0';
+	new[0].first_block =  cluster_parent_dir; // apontando para o ele mesmo
 	new[0].size = ENTRY_BY_CLUSTER; // tamanho de 32 logo que ele só é a entrada.
 	new[0].attributes = 1; // definindo como diretório.
 	// configurando o diretório '..'.
 	new[1] = new[0];
 	new[1].filename[1] = '.';
-	new[0].first_block = cluster_parent_dir;
+	new[0].filename[2] = '\0';
+	new[0].first_block = block;
 	return new;
 }
 
@@ -317,7 +316,7 @@ void create_dir(dir_entry_t *parent_dir, int cluster_parent_dir, char *str){
 	if(free_entry_dir > 0){ // se existir entrada disponível.
 		free_block = free_blocks();
 		if(free_block > -1){ // se existir espaço no disco.
-			printf(": fwrite :\n");
+			
 			// Adicionando a entrada no diretório pai
 			set_dir_entry(parent_dir, cluster_parent_dir, str, free_entry_dir, free_block, CLUSTER_SIZE, 1);			
 			// Criando diretório com configurações iniciais.
@@ -327,7 +326,7 @@ void create_dir(dir_entry_t *parent_dir, int cluster_parent_dir, char *str){
 			// persistindo a atualização da fat no arquivo.
 			persist_on_disk(&fat[free_block], 2, FAT_ENTRY(free_block));			
 			// persistindo o novo diretório no disco.
-			printf("write: %d\n", (free_block * 1024) + CLUSTER_DATA);
+			printf("\twrite: %d/%d\n", (free_block * 1024) + CLUSTER_DATA, ((free_block * 1024) + CLUSTER_DATA)/1024);
 			persist_on_disk(new_d, CLUSTER_SIZE, (free_block * 1024) + CLUSTER_DATA);
 			free(new_d);
 		}else{
@@ -366,7 +365,7 @@ void mkdir(char *arg){
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
 		block = findCluster(&str, block, &ptr_enter);
-		printf("str: %s, bloco: %d, bkp: %d\n", str, block, bkp);	
+		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);	
 	}
 	dir_entry_t *dir;
 	if(block == -3){ // se o caminho ate o arquivo for inválido
