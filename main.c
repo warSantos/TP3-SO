@@ -7,9 +7,6 @@ int main(int argc, char **argv){
 	// ### DEBUG ###
 	init();
 	load();
-	while(1){
-
-		shell();
-	}
+	shell();
 	return 0;
 }

@@ -1,0 +1,75 @@
+/tmp/img - 
+
+tmp/img
+
+d m 1
+d f 1
+a m 0
+a f 1
+
+enquanto block > -3 e str != '\0'
+	findcluster
+se estiver tentando criar a raiz (loucura isso viu)
+	se a raiz ja estiver pronta
+		retorne erro
+	se nao
+		cria a raiz
+se nao existir o arquivo
+		se for na raiz
+			aponta o ponteiro para root_dir
+		se nao for na raiz
+			aponta o ponteiro para um dir qualquer
+		se houver espaço
+			crie o diretorio
+		se nao 
+			retorne erro
+se existir o arquivo
+	se ele for um diretorio
+		retorne erro
+	se ele for um arquivo
+		se houver espaço
+			crie o diretorio
+		se nao 
+			retorne erro
+			
+// 0 1 2 3 4
+//		 4 5
+// h o m e \0
+
+t m p / v a r / / /  \0
+0 1 2 3 4 5 6 7 8 9  11
+		 		  10
+t m p / v a r
+0 1 2 3 4 5 6
+			7
+
+
+t m p / v a r
+0 1 2 3 4 5 6
+			6
+
+t m p / v a r
+0 1 2 3 4 5 6
+	  3	    6
+
+t m p / v a r
+0 1 2 3 4 5 6
+	    4   6
+	    
+len >= 0 && str[len] == / || len == -1
+
+len > 0 && str[len]
+
+PAREI DEPOIS DE TERMINAR A FUNÇÃO LAST_TOKEN, FAZENDO A FUNÇÃO CREATE_DIR.
+
+void persist_on_disk(void *data, int size_data, int block){
+
+	FILE *ptr_file =fopen(fat_name, "r+b");
+	fseek(ptr_file, block, SEEK_SET);
+	if(!fwrite(ptr_file, size_data, 1, data)){
+		perror("persist_on_disk");
+	}
+	fclose(ptr_file);
+}
+
+

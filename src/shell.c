@@ -67,39 +67,50 @@ int format(char *str, char ***comandos){
 
 void shell(void){
 	
-	char *str = calloc(1, 1001);
-	str[1000] = '\0';
-	char **comando;	
+	while(1){
 
-	printf("> ");
-	scanf("%[^\n]", str);
-	__fpurge(stdin);
+		char *str = calloc(1, 1001);
+		str[1000] = '\0';
+		char **comando;	
 
-	int parametros = format(str, &comando);	
-	if(!strcmp("init", comando[0])){				
-		init();
-	}else if(!strcmp("load", comando[0])){
-		load();
-	}else if(!strcmp("ls", comando[0])){
-		char o = '-'; // parâmetro para arquivos ocultos.		
-		ls(comando[1], o);		
-	}else if(!strcmp("create", comando[0])){
+		printf("> ");
+		scanf("%[^\n]", str);
+		__fpurge(stdin);
+
+		int parametros = format(str, &comando), i;	
+		if(!strcmp("init", comando[0])){				
+			init();
+		}else if(!strcmp("load", comando[0])){
+			load();
+		}else if(!strcmp("ls", comando[0])){
+			char o = '-'; // parâmetro para arquivos ocultos.		
+			if(parametros == 1){
+				ls("\0", o); // passa o diretório corrente.
+			}else{
+				for(i = 1; i < parametros; ++i){
+					ls(comando[i], o);
+				}
+			}				
+		}else if(!strcmp("create", comando[0])){
 		
-	}else if(!strcmp("unlink", comando[0])){		
-		
-	}else if(!strcmp("write", comando[0])){
-		
-	}else if(!strcmp("append", comando[0])){
-		
-	}else if(!strcmp("read", comando[0])){
-		
-	}else if(!strcmp("quit", comando[0])){
-		
-		printf("Have a nice day!\n");
-		exit(0);
-	}else{		
-		printf("comando %s não encontrado.\n", comando[0]);
+		}else if(!strcmp("mkdir", comando[0])){
+			mkdir(comando[1]);
+		}else if(!strcmp("unlink", comando[0])){		
+			
+		}else if(!strcmp("write", comando[0])){
+			
+		}else if(!strcmp("append", comando[0])){
+			
+		}else if(!strcmp("read", comando[0])){
+			
+		}else if(!strcmp("quit", comando[0])){
+			
+			printf("Have a nice day!\n");
+			exit(0);
+		}else{		
+			printf("comando %s não encontrado.\n", comando[0]);
+		}
+		free(str);
+		free(comando);
 	}
-	free(str);
-	free(comando);
 }

@@ -16,6 +16,10 @@
 #define NUM_CLUSTER	4096
 /// marca o cluster inicial do espaço de dados.
 #define CLUSTER_DATA (sizeof(boot_block) + sizeof(fat) + sizeof(root_dir))
+/// Mapeia posição de blocos em bytes da fat no disco através do id de um bloco.
+#define FAT_ENTRY(ENTRY_BLOCK) (sizeof(boot_block) + (2 * ENTRY_BLOCK))
+/// Mapeia entrada de diretórios da raiz no disco.
+#define ROOT_ENTRY(ENTRY_DIR) (sizeof(boot_block) + sizeof(fat) + (ENTRY_DIR) * 32)
 #define fat_name	"fat.part"
 
 typedef struct _dir_entry_t
@@ -35,26 +39,32 @@ typedef union _data_cluster{
 
 /*DATA DECLARATION*/
 
-/// tabela fat
+/// Tabela fat
 unsigned short fat[NUM_CLUSTER];
 
-/// bloco de boot
+/// Bloco de boot
 unsigned char boot_block[CLUSTER_SIZE];
 
-/// diretório root global
+/// Diretório root global
 dir_entry_t root_dir[ENTRY_BY_CLUSTER];
 
-/// espaço de dados.
+/// Espaço de dados.
 data_cluster clusters[4086];
 
-/// diretório atual no shell.
+/// Diretório atual no shell.
 char pwd[500];
 
-/// define o cluster atual (para fins de otimização).
+/// Define o cluster atual (para fins de otimização).
 int cluster_atual;
 
-/// similar a strtok porém preserva a string.
+/// Similar a strtok porém preserva a string.
 char *__strtok(char *str, char delim);
+
+// Retorna o ultimo token de um caminho.
+char *last_token(char *str, char delim);
+
+// Persiste um fluxo de dados no disco (fat_name).
+void persist_on_disk(void *data, int size_data, int block);
 
 /*
  * Recebe um caminho e o bloco atual deste caminho. 
@@ -78,11 +88,14 @@ int findCluster(char **path, int bloco_atual, int *ptr_enter);
 */
 data_cluster *read_cluster(int block);
 
+/// É a função read_cluster com casting para (dir_entry *).
+dir_entry_t *is_root(int block);
+
 void init();
 
 void load();
 
-/// imprime os atributos das entradas de um diretório
+/// Imprime os atributos das entradas de um diretório
 void listaDir(dir_entry_t *dir);
 
 /*
@@ -95,12 +108,30 @@ void listaDir(dir_entry_t *dir);
 void ls(char *arg, char oculto);
 
 /*
- * verifica se existe espaço para inserir mais uma entrada no diretório.
+ * Verifica se existe espaço para inserir mais uma entrada no diretório.
  * ### RETORNO ###
  * >=2, <32: posição vázia.
  * -1: não existe mais posições livres 
 */
-int free_enter(dir_entry_t *t);
+int free_entry(dir_entry_t *t);
+
+/*
+ * Procura blocos livres em O(n), utilizada para fins de debug.
+ * ## RETORNO ###
+ * >=0: se existir blocos livres.
+ * -1: se não existir mais blocos livres.
+*/
+int free_blocks(void);
+
+/// Configura os parâmetros de uma entrada de diretório.
+void set_dir_entry(dir_entry_t *parent_dir, int cluster_parent_dir, char *str, int free_entry_dir, 
+		int free_block, int size, int attributes);
+
+/// Cria um diretório padrão. 
+dir_entry_t *new_dir(int block, int cluster_parent_dir);
+
+/// Persiste um novo diretório no disco
+void create_dir(dir_entry_t *parent_dir, int cluster_parent_dir, char *str);
 
 /*
  * Recebe o caminho e o nome do diretório a ser criado.
