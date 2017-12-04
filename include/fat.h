@@ -145,6 +145,10 @@ void mkdir(char *arg);
  * Se nenhum caminho for passado antes do diretório,
  * o diretório base é tomado como referência.
 */
-void create_file(char *arg);
+int create_file(char *arg);
+
+/// DEBUG MACROS
+
+#define stage(N) printf("Ponto: %d\n", N);
 
 #endif

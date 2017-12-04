@@ -1,7 +1,5 @@
 #include "fat.h"
 
-#define stage(N) printf("%d\n", N);
-
 char *__strtok(char *str, char delim){
 
 	int i = 0;
@@ -340,7 +338,7 @@ void mkdir(char *arg){
 	}else if(block == -2){ // se o caminho até o arquivo for válido porém o arquivo não existir
 		
 		dir = is_root(bkp); // retorne o diretório.	
-		create_dir(dir, bkp, arg);	
+		create_dir(dir, bkp, arg);
 	}else if(block == 65534){ // se o diretório a ser solicitada criação for a raiz.
 		stage(1)
 		if(root_dir[0].filename[0] == '.'){ // se a raiz já estiver sido criada.
@@ -356,7 +354,7 @@ void mkdir(char *arg){
 	}
 }
 
-void create_file(char *arg){
+int create_file(char *arg){
 
 	int block = current_block; // recebe o bloco atual.
 	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
@@ -391,6 +389,7 @@ void create_file(char *arg){
 					fat[block] = 65535; // 65535 sinaliza que este é o último bloco.			
 					// persistindo a atualização da fat no arquivo.
 					persist_on_disk(&fat[block], 2, FAT_ENTRY(block));
+					return new_block; // retorna o bloco do novo arquivo criado.
 				}else{					
 					printf("create: não foi possível criar o arquivo \"%s\""
 					": Limite máximo do disco atingido.\n", str);
@@ -403,4 +402,5 @@ void create_file(char *arg){
 			printf("mkdir: não foi possível criar o arquivo “%s”: Arquivo existe\n", arg);
 		}
 	}
+	return -1;
 }

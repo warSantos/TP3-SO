@@ -91,4 +91,24 @@ se o caminho para o novo arquivo for válido
 		retorne erro (arquivo já existe)
 se nao 
 	retorne erro (impossível atingir tal diretório)
+	
+write
+se existir espaço no disco para o arquivo
+	salve os blocos livres
+	chama a função create_file
+	se o arquivo foi criado
+		escreva nele.
+se nao
+	retorna erro (nao há espaço livre em disco suficiente).
+	
 
+enquanto nao achar aspas duplas "
+	se achar aspas
+	find_text(i)
+
+int find_text (indice)
+	enquanto nao achar as aspas de fechar
+	se achar aspas de fechar 
+		retorne i
+	incrementa o i
+	retorne -1
