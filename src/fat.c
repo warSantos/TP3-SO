@@ -147,9 +147,12 @@ void init(){
 
 	fwrite(&boot_block, sizeof(boot_block), 1, ptr_file);
 
-	for (i = 0; i < NUM_CLUSTER; ++i)
+	for (i = 0; i < NUM_CLUSTER; ++i){
 		fat[i] = 0xfffe;
-
+		fat_sucessors[i]=i+1;
+	}
+	next_available_block = 0;
+		
 	fwrite(&fat, sizeof(fat), 1, ptr_file);
 
     memset(root_dir, 0x00, sizeof(root_dir));	
@@ -229,7 +232,7 @@ int free_entry(dir_entry_t *dir){
 	}
 	return 0;
 }
-
+/*
 int free_blocks(void){
 	int i = 0;
 	while(i < 4086){
@@ -239,7 +242,49 @@ int free_blocks(void){
 		++i;
 	}
 	return -1;
+}*/
+
+int available_block(){
+	if(next_available_block != NUM_CLUSTER){
+		return fat_sucessors[next_available_block];
+	}else{
+		return -1;
+	}
 }
+
+void clear_block(int index){
+	//Se o bloco já está livre, não é necessário executar essa função.
+	if(fat_sucessors[index] > -1){
+		//Insira o código para liberar a posição fat[index] aqui
+		if(next_available_block != NUM_CLUSTER){
+			//Existe pelo menos um bloco livre.
+			int previous_sucessor = fat_sucessors[index];
+			fat_sucessors[index]=previous_sucessor;
+			//fat[index] = null;
+			fat_sucessors[next_available_block]=index;
+		}else{
+			//No momento, não existe nenhum bloco disponível.
+			fat_sucessors[index] = NUM_CLUSTER;
+			fat[index] = 65535;
+			next_available_block = index;
+		}
+	}
+}
+
+int allocate_block(){
+	if(next_available_block != NUM_CLUSTER){
+		int previous_block = next_available_block;
+		int previous_value = fat_sucessors[next_available_block];
+		fat_sucessors[next_available_block] = -1;
+		fat[next_available_block] = previous_block; //Escreve os dados de fato na FAT.
+		next_available_block = previous_value;
+		return previous_block;
+	}else{
+		return -1;
+	}
+}
+
+
 
 void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry,	
 	int block, int size, int attributes){

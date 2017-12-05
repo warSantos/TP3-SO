@@ -42,6 +42,12 @@ typedef union _data_cluster{
 /// Tabela fat
 unsigned short fat[NUM_CLUSTER];
 
+///Tabela que guarda em cada posição qual é o próximo bloco livre.
+unsigned short fat_sucessors[NUM_CLUSTER];
+
+///Posicao do proximo bloco livre;
+unsigned short next_available_block;
+
 /// Bloco de boot
 unsigned char boot_block[CLUSTER_SIZE];
 
@@ -120,8 +126,18 @@ int free_entry(dir_entry_t *t);
  * ## RETORNO ###
  * >=0: se existir blocos livres.
  * -1: se não existir mais blocos livres.
-*/
+
 int free_blocks(void);
+*/
+
+///Retorna o índice do próximo bloco disponível.
+int available_block();
+
+///Libera o bloco, atualizando os devidos sucessores na fat_sucessors.
+void clear_block(int index);
+
+///Preenche um valor no bloco, atualizando os devidos sucessores na fat_sucessors e o próximo bloco livre. 
+int allocate_block();
 
 /// Configura os parâmetros de uma entrada de diretório.
 void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry, 
