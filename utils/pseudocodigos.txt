@@ -112,3 +112,23 @@ int find_text (indice)
 		retorne i
 	incrementa o i
 	retorne -1
+
+se a o len da string ainda couber no disco.
+	se o arquivo existe
+		se o final do arquivo bater com o final de seu último bloco.
+			procurar novos blocos necessários
+			atualizar a fat
+			persista a string e a fat.
+		se nao
+			se a string couber no utlimo bloco
+				persista a string
+			se nao
+				persista ate onde der
+				poracurar novos blocos
+				atualizar a fat (alterar o
+					valor do endereçço do então último bloco).
+				peristir disco e fat
+	se nao
+		chama o write na integra
+se nao
+	retorne erro (limite do disco atingido).

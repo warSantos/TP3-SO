@@ -42,12 +42,6 @@ typedef union _data_cluster{
 /// Tabela fat
 unsigned short fat[NUM_CLUSTER];
 
-///Tabela que guarda em cada posição qual é o próximo bloco livre.
-unsigned short fat_sucessors[NUM_CLUSTER];
-
-///Posicao do proximo bloco livre;
-unsigned short next_available_block;
-
 /// Bloco de boot
 unsigned char boot_block[CLUSTER_SIZE];
 
@@ -126,18 +120,8 @@ int free_entry(dir_entry_t *t);
  * ## RETORNO ###
  * >=0: se existir blocos livres.
  * -1: se não existir mais blocos livres.
-
-int free_blocks(void);
 */
-
-///Retorna o índice do próximo bloco disponível.
-int available_block();
-
-///Libera o bloco, atualizando os devidos sucessores na fat_sucessors.
-void clear_block(int index);
-
-///Preenche um valor no bloco, atualizando os devidos sucessores na fat_sucessors e o próximo bloco livre. 
-int allocate_block();
+int free_blocks(int init);
 
 /// Configura os parâmetros de uma entrada de diretório.
 void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry, 
@@ -161,7 +145,38 @@ void mkdir(char *arg);
  * Se nenhum caminho for passado antes do diretório,
  * o diretório base é tomado como referência.
 */
-int create_file(char *arg);
+int create_file(char *arg, int size_file, int ignore);
+
+/*
+ * Retorna a quantidade de blocos necessários por um arquivo.
+ * a partir do tamanho de sua string.
+*/
+int size_in_block(int n_bytes);
+
+/*
+ * Retorna a quantidade de espaço ocupado por uma string em 
+ * blocos e mapeia os blocos disponíveis em um vetor. 
+ * Retorna -1 quando não há espaço suficiente.
+*/
+int limit_disk(char *arg, char *path, short int *buff);
+
+/*
+ * Recebe o caminho e o nome do arquivo a ser criado.
+ * Se nenhum caminho for passado antes do diretório,
+ * o diretório base é tomado como referência.
+ * Se o arquivo nao existir ele é criado.
+ * Se o arquivo existir ele é sobrescrito.
+*/
+void __write(char *arg, char *path);
+
+/*
+ * Recebe o caminho e o nome do arquivo a ser criado.
+ * Se nenhum caminho for passado antes do diretório,
+ * o diretório base é tomado como referência.
+ * Se o arquivo nao existir ele é criado.
+ * Se o arquivo existir o texto é adicionado ao seu final.
+*/
+void append(char *arg, char *path);
 
 /// DEBUG MACROS
 

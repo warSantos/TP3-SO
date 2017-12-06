@@ -58,25 +58,25 @@ int format(char *str, char ***comandos){
 		}	
 		++i;
 	}
-	j++;	
+	j++;
 	*comandos = malloc(sizeof(char *) * j);
 	
 	// separando os comandos.
 	int indice = -1, cont = 0;
 	i = bkp;
-	printf("I: %d\n: ", i);
+	//printf("I: %d\n: ", i);
 	char *temp = malloc(500);
 	while(1){
 
-		stage(0)
-		printf("str[i]: %c %d\n", str[i], i);
+		//stage(0)
+		//printf("str[i]: %c %d\n", str[i], i);
 		if(str[i] != ' ' && str[i] != '\0'){
-			stage(1)					
+			//stage(1)					
 			if(str[i] == '"'){ // copiando a string completa para o novo arguemnto.
 				
 				indice++;
 				(*comandos)[indice] = malloc(text_end - i);				
-				printf("I: %d\n: ", i);
+				//printf("I: %d\n: ", i);
 				strncpy((*comandos)[indice], &str[i + 1], text_end - i - 1);
 				(*comandos)[indice][text_end - i - 1] = '\0';
 				for(i = text_end; str[i + 1] == ' '; ++i); // movendo o indice para depois da " (aspas) e
@@ -85,12 +85,11 @@ int format(char *str, char ***comandos){
 				cont--;
 			}else{		
 				
-				printf("2 cont: %d\n", cont);		
+				//printf("2 cont: %d\n", cont);		
 				temp[cont] = str[i];				
-			}
-			
+			}			
 		}else{
-			printf("3 cont: %d\n", cont);
+			//printf("3 cont: %d\n", cont);
 			temp[cont] = '\0';
 			indice++;		
 			(*comandos)[indice] = malloc((strlen(temp) + 1));			
@@ -107,19 +106,19 @@ int format(char *str, char ***comandos){
 
 				break;
 			}
-			stage(3)			
+			//stage(3)			
 		}
 		++i;
 		++cont;
 	}	
 	// retorna a quantidade de parâmetros.
-	stage(4)
+	//stage(4)
 	return j;
 }
 
 void shell(void){
 	
-	char *str = calloc(1, 1001);
+	char *str = calloc(1, 5001);
 	
 	while(1){
 
@@ -148,15 +147,22 @@ void shell(void){
 				}
 			}				
 		}else if(!strcmp("create", comando[0])){
-			create_file(comando[1]);
+			create_file(comando[1], 0, 0);
 		}else if(!strcmp("mkdir", comando[0])){
 			mkdir(comando[1]);
 		}else if(!strcmp("unlink", comando[0])){		
 			
 		}else if(!strcmp("write", comando[0])){
-			printf("%s\n", comando[0]);
+			
+			/*printf("%s\n", comando[0]);
 			printf("%s\n", comando[1]);
-			printf("%s\n", comando[2]);
+			printf("%s\n", comando[2]);*/
+			printf("c2: %s\n", comando[2]);
+			__write(comando[1], comando[2]);
+			int e = 0;
+			for(; e < 6; ++e){
+				printf("e: %d\n", fat[e]);
+			}
 		}else if(!strcmp("append", comando[0])){
 			
 		}else if(!strcmp("read", comando[0])){

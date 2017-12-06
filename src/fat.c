@@ -147,12 +147,9 @@ void init(){
 
 	fwrite(&boot_block, sizeof(boot_block), 1, ptr_file);
 
-	for (i = 0; i < NUM_CLUSTER; ++i){
-		fat[i] = 0xfffe;
-		fat_sucessors[i]=i+1;
-	}
-	next_available_block = 0;
-		
+	for (i = 0; i < NUM_CLUSTER; ++i)
+		fat[i] = 0xffff;
+
 	fwrite(&fat, sizeof(fat), 1, ptr_file);
 
     memset(root_dir, 0x00, sizeof(root_dir));	
@@ -180,7 +177,7 @@ void listaDir(dir_entry_t *dir){
 		if(dir[i].filename[0]){ // se existir arquivo ou diretório na respectiva entrada.
 
 			if(dir[i].filename[0] /*== '.' && oculto == 'o'*/){ // se for um diretório oculto.				
-				printf("%s : %d\t", dir[i].filename, dir[i].first_block);
+				printf("%s : %d : size: %d\t", dir[i].filename, dir[i].first_block, dir[i].size);
 				//printf("%s\t", dir[i].filename);
 			}else {				
 				printf("%s : %d\t", dir[i].filename, dir[i].first_block);
@@ -200,8 +197,7 @@ void ls(char *arg, char oculto){
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
 		block = findCluster(&str, block, &ptr_enter);
-		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);
-		//getchar();
+		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);		
 	}
 	dir_entry_t *dir;
 	if(block < -1){ // se o caminho até o arquivo for inválido.
@@ -232,59 +228,17 @@ int free_entry(dir_entry_t *dir){
 	}
 	return 0;
 }
-/*
-int free_blocks(void){
-	int i = 0;
+
+int free_blocks(int init){
+	int i = init;
 	while(i < 4086){
-		if(fat[i] == 65534){ // se este id estiver livre.
+		if(fat[i] == 65535){ // se este id estiver livre.
 			return i;
 		}
 		++i;
 	}
 	return -1;
-}*/
-
-int available_block(){
-	if(next_available_block != NUM_CLUSTER){
-		return fat_sucessors[next_available_block];
-	}else{
-		return -1;
-	}
 }
-
-void clear_block(int index){
-	//Se o bloco já está livre, não é necessário executar essa função.
-	if(fat_sucessors[index] > -1){
-		//Insira o código para liberar a posição fat[index] aqui
-		if(next_available_block != NUM_CLUSTER){
-			//Existe pelo menos um bloco livre.
-			int previous_sucessor = fat_sucessors[index];
-			fat_sucessors[index]=previous_sucessor;
-			//fat[index] = null;
-			fat_sucessors[next_available_block]=index;
-		}else{
-			//No momento, não existe nenhum bloco disponível.
-			fat_sucessors[index] = NUM_CLUSTER;
-			fat[index] = 65535;
-			next_available_block = index;
-		}
-	}
-}
-
-int allocate_block(){
-	if(next_available_block != NUM_CLUSTER){
-		int previous_block = next_available_block;
-		int previous_value = fat_sucessors[next_available_block];
-		fat_sucessors[next_available_block] = -1;
-		fat[next_available_block] = previous_block; //Escreve os dados de fato na FAT.
-		next_available_block = previous_value;
-		return previous_block;
-	}else{
-		return -1;
-	}
-}
-
-
 
 void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry,	
 	int block, int size, int attributes){
@@ -326,7 +280,8 @@ void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str){
 	new_entry = free_entry(parent_dir);
 	
 	if(new_entry > 0){ // se existir entrada disponível.
-		block = free_blocks();
+		block = free_blocks(0);
+		printf("new_block: %d\n", block);
 		if(block > -1){ // se existir espaço no disco.
 			
 			// Adicionando a entrada no diretório pai
@@ -334,11 +289,10 @@ void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str){
 			// Criando diretório com configurações iniciais.
 			dir_entry_t *new_d = new_dir(block, block_parent_dir);	
 			// atualizando a fat.
-			fat[block] = 65535; // 65535 sinaliza que este é o último bloco.			
+			fat[block] = 65533; // 65533 sinaliza que este é o último bloco.			
 			// persistindo a atualização da fat no arquivo.
 			persist_on_disk(&fat[block], 2, FAT_ENTRY(block));
-			// persistindo o novo diretório no disco.
-			//printf("\twrite: %d/%d\n", (block * 1024) + CLUSTER_DATA, ((block * 1024) + CLUSTER_DATA)/1024);
+			// persistindo o novo diretório no disco.			
 			persist_on_disk(new_d, CLUSTER_SIZE, (block * 1024) + CLUSTER_DATA);
 			free(new_d);
 		}else{
@@ -352,7 +306,7 @@ void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str){
 }
 
 void persist_on_disk(void *data, int size_data, int block){
-
+	//printf("block_persist: %d\n", block);
 	FILE *ptr_file =fopen(fat_name, "rb+");
 	fseek(ptr_file, block, SEEK_SET);	
 	if(!fwrite(data, size_data, 1, ptr_file)){
@@ -385,7 +339,7 @@ void mkdir(char *arg){
 		dir = is_root(bkp); // retorne o diretório.	
 		create_dir(dir, bkp, arg);
 	}else if(block == 65534){ // se o diretório a ser solicitada criação for a raiz.
-		stage(1)
+		
 		if(root_dir[0].filename[0] == '.'){ // se a raiz já estiver sido criada.
 			printf("mkdir: não foi possível criar o diretório \“/\”: Arquivo existe\n");
 		}else{ // se não estiver sido.
@@ -399,7 +353,7 @@ void mkdir(char *arg){
 	}
 }
 
-int create_file(char *arg){
+int create_file(char *arg, int size_file, int ignore){
 
 	int block = current_block; // recebe o bloco atual.
 	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
@@ -409,7 +363,7 @@ int create_file(char *arg){
 	char *str = arg;
 	if(strcmp("/", str) && root_dir[0].filename[0] == 0){
 		printf("mkdir: não foi possível criar o diretório \“%s\”: Diretório raiz inexistente.\n", str);
-		return;
+		return -1;
 	}
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
 						
@@ -422,18 +376,19 @@ int create_file(char *arg){
 		
 		printf("create: não foi possível criar '%s': Arquivo ou diretório não encontrado\n", arg);
 	}else{ // se o caminho não for válido.
-		
-		if(block == -2){ // se nao existir arquivo com mesmo nome.
-			dir = is_root(bkp);			
+
+		dir = is_root(bkp);
+		if(block == -2 || (ignore && !dir[ptr_enter].attributes)){ // se nao existir arquivo com mesmo nome.			
 			new_entry = free_entry(dir);
 			if(free_entry > 0){ // se existirem entradas disponíveis no diretório.
-				new_block = free_blocks();
+				new_block = free_blocks(0);
+				printf("new_block: %d\n", new_block);
 				if(new_block > -1){ // se existir bloco livre
-					set_dir_entry(dir, bkp, arg, new_entry, new_block, 0, 0);
+					set_dir_entry(dir, bkp, arg, new_entry, new_block, size_file, 0);
 					// atualizando a fat.
-					fat[block] = 65535; // 65535 sinaliza que este é o último bloco.			
+					fat[new_block] = 65533; // 65533 sinaliza que este é o último bloco.			
 					// persistindo a atualização da fat no arquivo.
-					persist_on_disk(&fat[block], 2, FAT_ENTRY(block));
+					persist_on_disk(&fat[new_block], 2, FAT_ENTRY(block));
 					return new_block; // retorna o bloco do novo arquivo criado.
 				}else{					
 					printf("create: não foi possível criar o arquivo \"%s\""
@@ -444,8 +399,153 @@ int create_file(char *arg){
 				": Não há entradas disponíveis neste diretório.\n", str);
 			}
 		}else{
-			printf("mkdir: não foi possível criar o arquivo “%s”: Arquivo existe\n", arg);
+			printf("create: não foi possível criar o arquivo “%s”: Arquivo existe\n", arg);
 		}
 	}
 	return -1;
+}
+
+int size_in_block(int n_bytes){
+
+	if(n_bytes % 1024){ // se resto > 0
+		return (n_bytes / 1024) + 1;
+	}// se não.	 
+	return (n_bytes / 1024);
+}
+
+int limit_disk(char *arg, char *path, short int *buff){
+	
+	int len = strlen(arg) + 1;
+	// verificando a quantidade de blocos necessários para o arquivo.
+	int n_blocks = size_in_block(len);
+	int i, next;
+	// verificando se existe disponível a quantidade de blocos requerida.
+	// pelo arquivo.		
+	i = 0;
+	next = -1;
+	while(i < n_blocks){ // enquanto i for menor que o numero de blocos.
+
+		buff[i] = free_blocks(next + 1);
+		if(buff[i] == -1){ // se nao existir blocos disponíveis.
+			printf("write: não foi possível criar o arquivo \"%s\""
+					": Limite máximo do disco atingido.\n", path);
+			return -1;
+		}
+		next = buff[i];
+		++i;
+	}
+	return n_blocks;
+}
+
+void __write(char *arg, char *path){
+
+	short int buff[100];
+	memset(buff, 0xffff, sizeof(buff));	
+	int n_blocks = limit_disk(arg, path, buff), len = strlen(arg) + 1;
+	buff[0] = create_file(path, len, 1);	
+	if(buff[0] == -1){ // se algum erro ocorreu nao função create.
+		return;
+	}
+	int i = 0;
+	stage(n_blocks)
+	while(i < n_blocks){ // persistindo dados no disco.
+
+		if(i == n_blocks - 1){ // se for o restante da da string.
+			stage(100)
+			persist_on_disk(arg + (i * 1024), strlen(arg + (i * 1024)) + 1, (buff[i] * 1024) + CLUSTER_DATA);
+			fat[buff[i]] = 65533; // marcando o bloco como último.			
+		}else{ // se for o início ou o começo.
+			stage(200)
+			persist_on_disk(arg + (i * 1024), CLUSTER_SIZE, (buff[i] * 1024) + CLUSTER_DATA);
+			fat[buff[i]] = buff[i + 1];
+		}
+		persist_on_disk(&fat[buff[i]], 2, FAT_ENTRY(buff[i]));
+		++i;
+	}
+}
+
+void append(char *arg, char *path){
+
+	// atualizando o bkp com o diretório atual.
+	int bkp = current_block;
+	int ptr_enter = 0;
+	int block = findCluster(path, bkp, &ptr_enter);
+	char *str = arg;
+	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
+						
+		bkp = block; // realizando bkp do bloco do diretório anterior.
+		block = findCluster(&str, block, &ptr_enter);
+		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);
+	}
+	if(block == -3){ // verificando se o caminho ate o arquivo e válido
+
+		printf("append: não foi possível criar '%s': Arquivo ou diretório não encontrado\n", arg);
+		return -1;
+	}else if(block == -2){ // se o arquivo não exite.
+		
+		__write(arg, path);
+	}else{ // se o arquivo existir.
+		dir_entry_t *dir = is_root(bkp);
+		if(dir[ptr_enter].attributes){ // se o arquivo for um diretório.
+			printf("create: não foi possível criar o arquivo “%s”: Arquivo existe\n", arg);
+			return;	
+		}
+		// recebendo o tamanho do arquivo.		
+		short int buff[100];
+		memset(buff, 0xffff, sizeof(buff));	
+		int n_blocks = limit_disk(arg, path, buff), len = strlen(arg) + 1;
+		if(n_blocks == -1){
+			printf("write: não foi possível criar o arquivo \"%s\""
+					": Limite máximo do disco atingido.\n", path);
+			return;
+		}
+		int i, last_block = block;
+		while(fat[last_block] != 65533){ // enquanto não chegar no último bloco do arquivo.
+
+			last_block = fat[fat[last_block]];
+		}
+		int str_rest = dir[ptr_enter].size % CLUSTER_SIZE;		
+		if(str_rest){ // se o tamanho do arquivo mod CLUSTER_SIZE for > 0.
+
+			// realizando a primeira escrita (preenchendo o restante do bloco).
+			char *temp = malloc(1024);
+			strncpy(temp, arg, str_rest);
+			persist_on_disk(temp, str_rest, str_rest + (last_block * CLUSTER_SIZE) + CLUSTER_DATA);
+			fat[last_block] = buff[0]; // atualizando o último bloco do arquivo na fat para os novos blocos.
+			persist_on_disk(&fat[last_block], 2, FAT_ENTRY(last_block));
+			free(temp);			
+			while(i < n_blocks){ // persistindo dados no disco.
+
+				if(i == n_blocks - 1){ // se for o restante da da string.
+					
+					persist_on_disk(arg + (i * 1024) + str_rest, strlen(arg + (i * 1024)) + 1, (buff[i] * 1024) + CLUSTER_DATA);
+					fat[buff[i]] = 65533; // marcando o bloco como último.
+				}else{ // se for o início ou o começo.
+					
+					persist_on_disk(arg + (i * 1024) + str_rest, CLUSTER_SIZE, (buff[i] * 1024) + CLUSTER_DATA);
+					fat[buff[i]] = buff[i + 1];
+				}
+				persist_on_disk(&fat[buff[i]], 2, FAT_ENTRY(buff[i]));
+				++i;
+			}
+		}else{ // se o tamanho do arquivo mod CLUSTER_SIZE for 0.
+			
+			fat[last_block] = buff[0]; // atualizando o último bloco do arquivo na fat para os novos blocos.
+			persist_on_disk(&fat[last_block], 2, FAT_ENTRY(last_block));
+			while(i < n_blocks){ // persistindo dados no disco.
+
+				if(i == n_blocks - 1){ // se for o restante da da string.
+					
+					persist_on_disk(arg + (i * 1024), strlen(arg + (i * 1024)) + 1, (buff[i] * 1024) + CLUSTER_DATA);
+					fat[buff[i]] = 65533; // marcando o bloco como último.
+				}else{ // se for o início ou o começo.
+
+					persist_on_disk(arg + (i * 1024), CLUSTER_SIZE, (buff[i] * 1024) + CLUSTER_DATA);
+					fat[buff[i]] = buff[i + 1];
+				}
+				persist_on_disk(&fat[buff[i]], 2, FAT_ENTRY(buff[i]));
+				++i;
+			}
+		}
+	}
 }
