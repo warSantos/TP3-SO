@@ -154,13 +154,16 @@ void shell(void){
 		}else if(!strcmp("unlink", comando[0])){		
 			
 		}else if(!strcmp("write", comando[0])){
+			/*
 			printf("%s\n", comando[0]);
 			printf("%s\n", comando[1]);
 			printf("%s\n", comando[2]);
+			 */
+			//write(comando[1], comando[2]);
 		}else if(!strcmp("append", comando[0])){
-			
+			//append(comando[1], comando[2]);
 		}else if(!strcmp("read", comando[0])){
-			
+			//read(comando[1]);
 		}else if(!strcmp("quit", comando[0])){
 			
 			printf("Have a nice day!\n");

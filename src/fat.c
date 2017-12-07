@@ -326,7 +326,8 @@ void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str){
 	new_entry = free_entry(parent_dir);
 	
 	if(new_entry > 0){ // se existir entrada disponível.
-		block = free_blocks();
+		//block = free_blocks();
+		block = available_block();
 		if(block > -1){ // se existir espaço no disco.
 			
 			// Adicionando a entrada no diretório pai
@@ -427,7 +428,8 @@ int create_file(char *arg){
 			dir = is_root(bkp);			
 			new_entry = free_entry(dir);
 			if(free_entry > 0){ // se existirem entradas disponíveis no diretório.
-				new_block = free_blocks();
+				//new_block = free_blocks();
+				new_block = available_block();
 				if(new_block > -1){ // se existir bloco livre
 					set_dir_entry(dir, bkp, arg, new_entry, new_block, 0, 0);
 					// atualizando a fat.
@@ -448,4 +450,18 @@ int create_file(char *arg){
 		}
 	}
 	return -1;
+	/*
+	void write(char *buffer, char *path){
+		
+	}
+
+
+	void append(char *buffer, char *path){
+		
+	}
+
+	void read(char *path){
+		
+	}
+	 */
 }

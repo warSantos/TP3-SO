@@ -163,6 +163,14 @@ void mkdir(char *arg);
 */
 int create_file(char *arg);
 
+///Escreve uma string em um arquivo, sobrescrevendo suas informações anteriores.
+//void write(char *buffer, char *path);
+
+///Escreve uma string no final de um arquivo, sem sobrescrever suas informações anteriores.
+//void append(char *buffer, char *path);
+
+///Exibe o conteúdo de um arquivo..
+//void read(char *path);
 /// DEBUG MACROS
 
 #define stage(N) printf("Ponto: %d\n", N);
