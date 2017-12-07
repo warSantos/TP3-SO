@@ -280,8 +280,8 @@ void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str){
 	new_entry = free_entry(parent_dir);
 	
 	if(new_entry > 0){ // se existir entrada disponível.
-		block = free_blocks(0);
-		printf("new_block: %d\n", block);
+		//block = free_blocks();
+		block = available_block();
 		if(block > -1){ // se existir espaço no disco.
 			
 			// Adicionando a entrada no diretório pai
@@ -413,6 +413,20 @@ int create_file(char *arg, int size_file, int ignore){
 		}
 	}
 	return -1;
+	/*
+	void write(char *buffer, char *path){
+		
+	}
+
+
+	void append(char *buffer, char *path){
+		
+	}
+
+	void read(char *path){
+		
+	}
+	 */
 }
 
 int size_in_block(int n_bytes){

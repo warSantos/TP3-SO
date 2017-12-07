@@ -168,7 +168,7 @@ void shell(void){
 		}else if(!strcmp("append", comando[0])){
 			append(comando[1], comando[2]);
 		}else if(!strcmp("read", comando[0])){
-			
+			//read(comando[1]);
 		}else if(!strcmp("quit", comando[0])){
 			
 			printf("Have a nice day!\n");
