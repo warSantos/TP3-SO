@@ -78,7 +78,7 @@ void persist_on_disk(void *data, int size_data, int block);
  * -3: caminho inválido.
  * >= 0: arquivo existente.
 */
-int findCluster(char **path, int bloco_atual, int *ptr_enter);
+int findCluster(char **path, int bloco_atual, int *ptr_entry);
 
 /* 
  * Faz leitura de um cluster do "disco".

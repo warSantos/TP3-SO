@@ -36,7 +36,7 @@ char *last_token(char *str, char delim){
 	return temp;
 }
 
-int findCluster(char **path, int block, int *ptr_enter){
+int findCluster(char **path, int block, int *ptr_entry){
 		
 	if(*path == NULL){ // se for NULL então retorne o bloco do diretório corrente.
 		
@@ -73,7 +73,7 @@ int findCluster(char **path, int block, int *ptr_enter){
 				((*path)[0] == '\0' || root_dir[j].attributes == 1)){
 				// se existir arquivo com o mesmo nome e ele for um diretório ou um arquivo no final do caminho,
 				// retorne o bloco dele.				
-				*ptr_enter = j; // economizar a pesquisa.
+				*ptr_entry = j; // economizar a pesquisa.
 				return root_dir[j].first_block;
 			}
 			//printf("name: %s attr: %d fb: %d\n", root_dir[j].filename, root_dir[j].attributes, root_dir[j].first_block);
@@ -100,7 +100,7 @@ int findCluster(char **path, int block, int *ptr_enter){
 				((*path)[0] == '\0' || dir[j].attributes == 1)){
 				// se existir arquivo com o mesmo nome e ele for um diretório ou um arquivo no final do caminho,
 				// retorne o bloco dele.
-				*ptr_enter = j; // economizar a pesquisa.
+				*ptr_entry = j; // economizar a pesquisa.
 				return dir[j].first_block;
 			}
 			j++;
@@ -191,12 +191,12 @@ void ls(char *arg, char oculto){
 
 	int block = current_block; // recebe o bloco atual.
 	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
-	int ptr_enter = 0; // ponterio para entrada (otimização). 
+	int ptr_entry = 0; // ponterio para entrada (otimização). 
 	char *str = arg;
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho e não achar nada inválido.
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
-		block = findCluster(&str, block, &ptr_enter);
+		block = findCluster(&str, block, &ptr_entry);
 		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);		
 	}
 	dir_entry_t *dir;
@@ -208,7 +208,7 @@ void ls(char *arg, char oculto){
 		listaDir(root_dir); // lista a raiz.
 	}else if(block > -1){// se for válido e não for a raiz.
 		dir = is_root(bkp); // retorne o diretório.
-		if(dir[ptr_enter].attributes == 1){	// se a entrada corresponder a um diretório.	
+		if(dir[ptr_entry].attributes == 1){	// se a entrada corresponder a um diretório.	
 			dir = (dir_entry_t *) read_cluster(block); // aponte para o diretório da respectiva entrada.
 			listaDir(dir); // imprima o diretório.
 		}else{
@@ -319,7 +319,7 @@ void mkdir(char *arg){
 
 	int block = current_block; // recebe o bloco atual.
 	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
-	int ptr_enter = 0; // ponterio para entrada (otimização). 
+	int ptr_entry = 0; // ponterio para entrada (otimização). 
 	char *str = arg;
 	if(strcmp("/", str) && root_dir[0].filename[0] == 0){
 		printf("mkdir: não foi possível criar o diretório \“%s\”: Diretório raiz inexistente.\n", str);
@@ -328,7 +328,7 @@ void mkdir(char *arg){
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
-		block = findCluster(&str, block, &ptr_enter);
+		block = findCluster(&str, block, &ptr_entry);
 		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);	
 	}
 	dir_entry_t *dir;
@@ -357,7 +357,7 @@ int create_file(char *arg, int size_file, int ignore){
 
 	int block = current_block; // recebe o bloco atual.
 	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
-	int ptr_enter = 0; // ponterio para entrada (otimização). 
+	int ptr_entry = 0; // ponterio para entrada (otimização). 
 	int new_block; // recebe o novo bloco para o arquivo a ser criado.
 	int new_entry; // recebe o a nova entrada para o arquivo a ser criado.
 	char *str = arg;
@@ -368,22 +368,32 @@ int create_file(char *arg, int size_file, int ignore){
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
-		block = findCluster(&str, block, &ptr_enter);
+		block = findCluster(&str, block, &ptr_entry);
 		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);	
 	}
 	dir_entry_t *dir;
-	if(block == -3){ // se o caminho for inválido.
+	if(block == -3){ // se o caminho não for válido.
 		
 		printf("create: não foi possível criar '%s': Arquivo ou diretório não encontrado\n", arg);
-	}else{ // se o caminho não for válido.
+	}else{ // se o caminho for inválido.
 
 		dir = is_root(bkp);
-		if(block == -2 || (ignore && !dir[ptr_enter].attributes)){ // se nao existir arquivo com mesmo nome.			
-			new_entry = free_entry(dir);
+		if(block == -2 || (ignore && !dir[ptr_entry].attributes)){ // se nao existir arquivo com mesmo nome ou existir 
+																   // e foi ordenado que ele seja sobrescrito.
+			if(block == -2){ // se a entrada de diretório não existe.
+				new_entry = free_entry(dir);
+			}else{ // se sim.
+				new_entry = ptr_entry;
+			}
 			if(free_entry > 0){ // se existirem entradas disponíveis no diretório.
-				new_block = free_blocks(0);
+				
+				if(block == -2){ // se a entrada de diretório não existe.
+					new_block = free_blocks(0);
+				}else{ // se sim.
+					new_block = block;
+				}
 				printf("new_block: %d\n", new_block);
-				if(new_block > -1){ // se existir bloco livre
+				if(new_block > -1){ // se existir bloco livre.
 					set_dir_entry(dir, bkp, arg, new_entry, new_block, size_file, 0);
 					// atualizando a fat.
 					fat[new_block] = 65533; // 65533 sinaliza que este é o último bloco.			
@@ -447,15 +457,12 @@ void __write(char *arg, char *path){
 		return;
 	}
 	int i = 0;
-	stage(n_blocks)
 	while(i < n_blocks){ // persistindo dados no disco.
 
 		if(i == n_blocks - 1){ // se for o restante da da string.
-			stage(100)
 			persist_on_disk(arg + (i * 1024), strlen(arg + (i * 1024)) + 1, (buff[i] * 1024) + CLUSTER_DATA);
 			fat[buff[i]] = 65533; // marcando o bloco como último.			
 		}else{ // se for o início ou o começo.
-			stage(200)
 			persist_on_disk(arg + (i * 1024), CLUSTER_SIZE, (buff[i] * 1024) + CLUSTER_DATA);
 			fat[buff[i]] = buff[i + 1];
 		}
@@ -466,86 +473,97 @@ void __write(char *arg, char *path){
 
 void append(char *arg, char *path){
 
-	// atualizando o bkp com o diretório atual.
-	int bkp = current_block;
-	int ptr_enter = 0;
-	int block = findCluster(path, bkp, &ptr_enter);
-	char *str = arg;
+	int block = current_block; // recebe o bloco atual.
+	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
+	int ptr_entry = 0; // ponterio para entrada (otimização). 
+	char *str = path;
+	printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
-		block = findCluster(&str, block, &ptr_enter);
-		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);
+		block = findCluster(&str, block, &ptr_entry);		
 	}
 	if(block == -3){ // verificando se o caminho ate o arquivo e válido
 
 		printf("append: não foi possível criar '%s': Arquivo ou diretório não encontrado\n", arg);
-		return -1;
+		return;
 	}else if(block == -2){ // se o arquivo não exite.
-		
 		__write(arg, path);
 	}else{ // se o arquivo existir.
+		stage(10)
 		dir_entry_t *dir = is_root(bkp);
-		if(dir[ptr_enter].attributes){ // se o arquivo for um diretório.
+		if(dir[ptr_entry].attributes){ // se o arquivo for um diretório.
 			printf("create: não foi possível criar o arquivo “%s”: Arquivo existe\n", arg);
-			return;	
+			return;
 		}
 		// recebendo o tamanho do arquivo.		
 		short int buff[100];
 		memset(buff, 0xffff, sizeof(buff));	
-		int n_blocks = limit_disk(arg, path, buff), len = strlen(arg) + 1;
+		int n_blocks = limit_disk(arg, path, buff);
 		if(n_blocks == -1){
 			printf("write: não foi possível criar o arquivo \"%s\""
 					": Limite máximo do disco atingido.\n", path);
 			return;
 		}
-		int i, last_block = block;
+		int last_block = block, len = strlen(arg) + 1;
 		while(fat[last_block] != 65533){ // enquanto não chegar no último bloco do arquivo.
 
 			last_block = fat[fat[last_block]];
 		}
-		int str_rest = dir[ptr_enter].size % CLUSTER_SIZE;		
+		stage(last_block)
+		int str_rest = (dir[ptr_entry].size % 1024) - 1, i = 0;
 		if(str_rest){ // se o tamanho do arquivo mod CLUSTER_SIZE for > 0.
-
-			// realizando a primeira escrita (preenchendo o restante do bloco).
-			char *temp = malloc(1024);
-			strncpy(temp, arg, str_rest);
-			persist_on_disk(temp, str_rest, str_rest + (last_block * CLUSTER_SIZE) + CLUSTER_DATA);
+			stage(20)
+			// realizando a primeira escrita (preenchendo o restante do bloco).			
+			int free_space = CLUSTER_SIZE - str_rest; // calculando o espaço livre no último bloco.
+			if(free_space <= len){ // se o espaço livre no bloco for menor que a string a ser escrita.	
+				persist_on_disk(arg, free_space + 1, str_rest + (last_block * CLUSTER_SIZE) + CLUSTER_DATA);
+			}else{ // se nao use o len do arg
+				set_dir_entry(dir, bkp, (char *) dir[ptr_entry].filename, ptr_entry, block, dir[ptr_entry].size + len, 0);
+				persist_on_disk(arg, len, str_rest + (last_block * CLUSTER_SIZE) + CLUSTER_DATA);
+				persist_on_disk(&fat[last_block], 2, FAT_ENTRY(last_block));
+				return;
+			}
 			fat[last_block] = buff[0]; // atualizando o último bloco do arquivo na fat para os novos blocos.
 			persist_on_disk(&fat[last_block], 2, FAT_ENTRY(last_block));
-			free(temp);			
+			stage(40)
+			stage(n_blocks)
 			while(i < n_blocks){ // persistindo dados no disco.
 
 				if(i == n_blocks - 1){ // se for o restante da da string.
 					
-					persist_on_disk(arg + (i * 1024) + str_rest, strlen(arg + (i * 1024)) + 1, (buff[i] * 1024) + CLUSTER_DATA);
+					persist_on_disk(arg + ((i * CLUSTER_SIZE) + free_space), 
+						strlen(arg + ((i * CLUSTER_SIZE) + free_space)), 
+							(buff[i] * CLUSTER_SIZE) + CLUSTER_DATA);
 					fat[buff[i]] = 65533; // marcando o bloco como último.
 				}else{ // se for o início ou o começo.
 					
-					persist_on_disk(arg + (i * 1024) + str_rest, CLUSTER_SIZE, (buff[i] * 1024) + CLUSTER_DATA);
+					persist_on_disk(arg + ((i * CLUSTER_SIZE) + free_space), CLUSTER_SIZE, (buff[i] * CLUSTER_SIZE) + CLUSTER_DATA);
 					fat[buff[i]] = buff[i + 1];
 				}
 				persist_on_disk(&fat[buff[i]], 2, FAT_ENTRY(buff[i]));
 				++i;
 			}
 		}else{ // se o tamanho do arquivo mod CLUSTER_SIZE for 0.
-			
+			stage(30)
 			fat[last_block] = buff[0]; // atualizando o último bloco do arquivo na fat para os novos blocos.
 			persist_on_disk(&fat[last_block], 2, FAT_ENTRY(last_block));
+			stage(50)
 			while(i < n_blocks){ // persistindo dados no disco.
 
 				if(i == n_blocks - 1){ // se for o restante da da string.
 					
-					persist_on_disk(arg + (i * 1024), strlen(arg + (i * 1024)) + 1, (buff[i] * 1024) + CLUSTER_DATA);
+					persist_on_disk(arg + (i * CLUSTER_SIZE), strlen(arg + (i * CLUSTER_SIZE)) + 1, (buff[i] * CLUSTER_SIZE) + CLUSTER_DATA);
 					fat[buff[i]] = 65533; // marcando o bloco como último.
 				}else{ // se for o início ou o começo.
 
-					persist_on_disk(arg + (i * 1024), CLUSTER_SIZE, (buff[i] * 1024) + CLUSTER_DATA);
+					persist_on_disk(arg + (i * CLUSTER_SIZE), CLUSTER_SIZE, (buff[i] * CLUSTER_SIZE) + CLUSTER_DATA);
 					fat[buff[i]] = buff[i + 1];
 				}
 				persist_on_disk(&fat[buff[i]], 2, FAT_ENTRY(buff[i]));
 				++i;
 			}
-		}
+		}// atualizando a entrada de diretório.
+		set_dir_entry(dir, bkp, (char *) dir[ptr_entry].filename, ptr_entry, block, dir[ptr_entry].size + len, 0);
 	}
 }

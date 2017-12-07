@@ -119,7 +119,9 @@ int format(char *str, char ***comandos){
 void shell(void){
 	
 	char *str = calloc(1, 5001);
-	
+	mkdir("/");
+	__write("teste write", "/file");
+	append(" teste append", "/file");
 	while(1){
 
 		str[0] = '\0';
@@ -164,7 +166,7 @@ void shell(void){
 				printf("e: %d\n", fat[e]);
 			}
 		}else if(!strcmp("append", comando[0])){
-			
+			append(comando[1], comando[2]);
 		}else if(!strcmp("read", comando[0])){
 			
 		}else if(!strcmp("quit", comando[0])){
