@@ -42,6 +42,12 @@ typedef union _data_cluster{
 /// Tabela fat
 unsigned short fat[NUM_CLUSTER];
 
+/// Tabele de armazenamento id de blocos livres.
+unsigned short fat_sucessors[NUM_CLUSTER];
+
+/// Aponta para o póximo bloco livre.
+unsigned short next_available_block;
+
 /// Bloco de boot
 unsigned char boot_block[CLUSTER_SIZE];
 
@@ -96,7 +102,7 @@ void init();
 void load();
 
 /// Imprime os atributos das entradas de um diretório
-void listaDir(dir_entry_t *dir);
+void lista_dir(dir_entry_t *dir, char oculto, char info);
 
 /*
  * Lista as entradas de diretório de um diretório.
@@ -105,7 +111,7 @@ void listaDir(dir_entry_t *dir);
  * -o: mostra diretórios ocultos.
  * Ex.: ls -o /home
 */
-void ls(char *arg, char oculto);
+void ls(char *arg, char oculto, char info);
 
 /*
  * Verifica se existe espaço para inserir mais uma entrada no diretório.
@@ -178,14 +184,20 @@ void __write(char *arg, char *path);
 */
 void append(char *arg, char *path);
 
-///Escreve uma string em um arquivo, sobrescrevendo suas informações anteriores.
-//void write(char *buffer, char *path);
+/*
+ * Recebe o caminho e o nome do arquivo e armazena o texto
+ * em um buffer, printando ao final.
+*/
+void __read(char *arg);
 
-///Escreve uma string no final de um arquivo, sem sobrescrever suas informações anteriores.
-//void append(char *buffer, char *path);
+/// ### GERENCIAMENTO DE BLOCOS ####
 
-///Exibe o conteúdo de um arquivo..
-//void read(char *path);
+int available_block();
+
+void clear_block(int index);
+
+int allocate_block();
+
 /// DEBUG MACROS
 
 #define stage(N) printf("Ponto: %d\n", N);

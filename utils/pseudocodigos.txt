@@ -132,3 +132,12 @@ se a o len da string ainda couber no disco.
 		chama o write na integra
 se nao
 	retorne erro (limite do disco atingido).
+	
+read
+	se o arquivo existir
+		se ele não for um diretório
+			leia ate o ultimo bloco do arquivo
+		se ele for um diretorio
+			retorne erro (arquivo é um diretório)
+se nao
+	retorne erro (arquivo inexistente).
