@@ -133,12 +133,28 @@ void shell(void){
 		}else if(!strcmp("load", comando[0])){
 			load();
 		}else if(!strcmp("ls", comando[0])){
-			char o = '-'; // parâmetro para arquivos ocultos.		
+			char oculto = '-'; // parâmetro para arquivos ocultos.		
+			char info = '-'; // parâmetros para mostrar informações.
+			int optc = 0, options = 0;
+			while((optc = getopt(parametros, comando, "oi")) != -1){
+				switch(optc){
+					case 'o' :
+						oculto = 'o';
+						options++;
+						break;
+					case 'i' :
+						info = 'i';
+						options++;
+						break;
+				}
+			}
+			parametros -= options;
+			printf("param: %d, options: %d\n", parametros, options);
 			if(parametros == 1){
-				ls("\0", 'o', 'i'); // passa o diretório corrente.
-			}else{
+				ls("\0", oculto, info); // passa o diretório corrente.
+			}else{				
 				for(i = 1; i < parametros; ++i){
-					ls(comando[i], o, 'i');
+					ls(comando[i], oculto, info);
 				}
 			}				
 		}else if(!strcmp("create", comando[0])){

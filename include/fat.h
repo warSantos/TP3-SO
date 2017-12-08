@@ -8,6 +8,7 @@
 #include <stdio_ext.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 /*DEFINE*/
 #define SECTOR_SIZE	512
