@@ -3,6 +3,7 @@
 
 #include "fat.h"
 
+
 #define print(N) printf("comando: %s\n", N);
 
 int find_text(char *str, int indice);
@@ -14,7 +15,7 @@ int find_text(char *str, int indice);
  * >=0: quantidade de argumentos (quantidade de vetores de char).
  * -1: erro.
 */
-int format(char *str, char ***comandos);
+char **format(char *str, int *n_parametros);
 
 void shell(void);
 

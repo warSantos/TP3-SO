@@ -12,19 +12,18 @@ int find_text(char *str, int indice){
 	return indice; // retorna posição onde as aspas foram fechadas.
 }
 
-int format(char *str, char ***comandos){
-	
+char **format(char *str, int *n_parametros){
+	char **comando;
 	int i = 0, j = 0, bkp, set = 0;
 	int n_text = 0, text_end;
 	// removendo espaços antes do comando
-	while(str[i] == ' ' && str[i] != '\0'){
-		
+	while(str[i] == ' ' && str[i] != '\0'){	
 		i++;
 	}		
 	// verifica se a entrada esta vazia.
 	if(str[i] == '\0'){ 
 		// Comando vazio.		
-		return -1;
+		return NULL;
 	}
 	// copiando o inicio válido da string.
 	bkp = i;
@@ -44,12 +43,12 @@ int format(char *str, char ***comandos){
 			if(n_text){ // se mais de um bloco de texto for passado.
 
 				printf("espressão mal formada: excesso de parâmetros.\n");
-				return -1;
+				return NULL;
 			}			
 			i = find_text(str, i);
 			if(i == -1){ // se as aspas não foram fechadas.
 				printf("expressão mal formada: \" esperado.\n");
-				return i;
+				return NULL;
 			}else if(str[i + 1] != ' '){ // se depóis do texto nao existir um espaço
 				j++;					// aumente em um a quantidade de parãmetros.
 			}
@@ -59,7 +58,7 @@ int format(char *str, char ***comandos){
 		++i;
 	}
 	j++;
-	*comandos = malloc(sizeof(char *) * j);
+	comando = malloc(sizeof(char *) * j);
 	
 	// separando os comandos.
 	int indice = -1, cont = 0;
@@ -74,9 +73,9 @@ int format(char *str, char ***comandos){
 			
 			if(str[i] == '"'){ // copiando a string completa para o novo arguemnto.				
 				indice++;
-				(*comandos)[indice] = malloc(text_end - i);				
-				strncpy((*comandos)[indice], &str[i + 1], text_end - i - 1);
-				(*comandos)[indice][text_end - i - 1] = '\0';
+				comando[indice] = malloc(text_end - i);				
+				strncpy(comando[indice], &str[i + 1], text_end - i - 1);
+				comando[indice][text_end - i - 1] = '\0';
 				for(i = text_end; str[i + 1] == ' '; ++i); // movendo o indice para depois da " (aspas) e
 														   // também de possívies espaços.
 				
@@ -87,10 +86,10 @@ int format(char *str, char ***comandos){
 		}else{
 			temp[cont] = '\0';
 			indice++;		
-			(*comandos)[indice] = malloc((strlen(temp) + 1));			
+			comando[indice] = malloc((strlen(temp) + 1));			
 			// copiando a string para sua respectiva posição na
 			// cadeia de comandos.
-			strcpy((*comandos)[indice], temp);
+			strcpy(comando[indice], temp);
 			cont = -1;
 			// removendo excesso de espaços entre arguemtos.
 			while(str[i] != '\0' && str[i + 1] != '\0' && str[i + 1] == ' '){				
@@ -105,7 +104,8 @@ int format(char *str, char ***comandos){
 		++cont;
 	}	
 	// retorna a quantidade de parâmetros.
-	return j;
+	*n_parametros = j;
+	return comando;
 }
 
 void shell(void){
@@ -118,16 +118,16 @@ void shell(void){
 		inicio:
 		str[0] = '\0';
 		char **comando;		
+		int parametros, i;
 		while(str[0] == '\0'){				
 			printf("> ");
 			scanf("%[^\n]", str);
 			__fpurge(stdin);
 		}
-		int parametros = format(str, &comando), i;	
-		if(parametros < 0){
+		comando = format(str, &parametros);	
+		if(comando == NULL){
 			goto inicio;
-		}
-		
+		}		
 		if(!strcmp("init", comando[0])){				
 			init();
 		}else if(!strcmp("load", comando[0])){
@@ -136,15 +136,22 @@ void shell(void){
 			char oculto = '-'; // parâmetro para arquivos ocultos.		
 			char info = '-'; // parâmetros para mostrar informações.
 			int optc = 0, options = 0;
-			while((optc = getopt(parametros, comando, "oi")) != -1){
+			printf("a param: %d, options: %d\n", parametros, options);
+			while(optc = getopt(parametros, comando, ":oi")) != -1){
+				printf("passou aqui\n");
 				switch(optc){
 					case 'o' :
 						oculto = 'o';
+						printf("parametro i, optarg: %s\n", optarg);
 						options++;
 						break;
 					case 'i' :
 						info = 'i';
+						printf("parametro o, optarg: %s\n", optarg);
 						options++;
+						break;
+					default :
+						printf("optarg %s\n", optarg);
 						break;
 				}
 			}
