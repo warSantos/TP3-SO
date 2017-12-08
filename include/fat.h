@@ -190,6 +190,13 @@ void append(char *arg, char *path);
 */
 void __read(char *arg);
 
+/*
+ * Recebe o caminho de um arquivo ou diretório, e remove-o
+ * se possível, marcando os blocos do arquivo com livre
+ * Diretório são removidos somente se estiverem vazios.
+*/
+void __unlink(char *arg);
+
 /// ### GERENCIAMENTO DE BLOCOS ####
 
 int available_block();

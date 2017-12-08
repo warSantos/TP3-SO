@@ -64,7 +64,7 @@ char **format(char *str, int *n_parametros){
 	int indice = -1, cont = 0;
 	i = bkp;
 	stage(200)
-	char *temp = calloc(1,500);
+	char *temp = malloc(sizeof(char)*500);
 	stage(300)
 
 	while(1){
@@ -77,9 +77,7 @@ char **format(char *str, int *n_parametros){
 				strncpy(comando[indice], &str[i + 1], text_end - i - 1);
 				comando[indice][text_end - i - 1] = '\0';
 				for(i = text_end; str[i + 1] == ' '; ++i); // movendo o indice para depois da " (aspas) e
-														   // também de possívies espaços.
-				
-				cont--;
+				cont--;								   	   // também de possívies espaços.								
 			}else{		
 				temp[cont] = str[i];				
 			}			
@@ -178,7 +176,13 @@ void shell(void){
 				}				
 			}
 		}else if(!strcmp("unlink", comando[0])){		
-			
+			if(parametros == 1){
+				printf("unlink: não foi possível remover o arquivo: parâmetros insuficcientes.\n");
+			}else{
+				for(i = 1; i < parametros; ++i){
+					__unlink(comando[i]);
+				}				
+			}
 		}else if(!strcmp("write", comando[0])){
 			if(parametros != 3){
 				printf("write: não foi possível escrever no arquivo: parâmetros inválidos.\n");

@@ -141,3 +141,17 @@ read
 			retorne erro (arquivo é um diretório)
 se nao
 	retorne erro (arquivo inexistente).
+
+
+unlink
+	se o arquivo existir
+		se este for um diretório
+			se ele estiver vazio
+				apague
+			se nao
+				retorne erro (diretório nao vazio)
+		se nao
+			apague
+	se nao 
+		o arquivo nao exisite
+

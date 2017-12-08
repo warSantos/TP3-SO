@@ -67,7 +67,7 @@ int findCluster(char **path, int block, int *ptr_entry){
 			}
 			(*path)++;
 		}
-		while(j < 32){
+		while(j < ENTRY_BY_CLUSTER){
 			// se achou o arquivo ou diretório retorne o bloco dele.
 			if(!strcmp(temp, (char *)root_dir[j].filename) &&
 				((*path)[0] == '\0' || root_dir[j].attributes == 1)){
@@ -94,7 +94,7 @@ int findCluster(char **path, int block, int *ptr_entry){
 		}
 		// se achou o arquivo ou diretório retorne o bloco dele.
 		dir_entry_t *dir = (dir_entry_t *) read_cluster(block);
-		while(j < 32){
+		while(j < ENTRY_BY_CLUSTER){
 			
 			if(!strcmp(temp, (char *) dir[j].filename) &&
 				((*path)[0] == '\0' || dir[j].attributes == 1)){
@@ -175,7 +175,7 @@ void load(){
 
 void lista_dir(dir_entry_t *dir, char oculto, char info){
 	int i;
-	for(i = 0; i < 32; ++i){			
+	for(i = 0; i < ENTRY_BY_CLUSTER; ++i){			
 		if(dir[i].filename[0]){ // se existir arquivo ou diretório na respectiva entrada.
 
 			if(dir[i].filename[0] != '.' || // se for um diretório oculto e a opção de listar todos
@@ -219,7 +219,7 @@ void ls(char *arg, char oculto, char info){
 
 		lista_dir(root_dir, oculto, info); // lista a raiz.
 	}else if(block > -1){// se for válido e não for a raiz.
-		dir = is_root(bkp); // retorne o diretório.
+		dir = is_root(bkp); // verificando se o diretório que o contém é a raiz.
 		if(dir[ptr_entry].attributes == 1){	// se a entrada corresponder a um diretório.
 			dir = (dir_entry_t *) read_cluster(block); // aponte para o diretório da respectiva entrada.
 			lista_dir(dir, oculto, info); // imprima o diretório.
@@ -233,7 +233,7 @@ void ls(char *arg, char oculto, char info){
 
 int free_entry(dir_entry_t *dir){
 	int i;
-	for(i = 2; i < 32; ++i){
+	for(i = 2; i < ENTRY_BY_CLUSTER; ++i){
 		if(dir[i].filename[0] == 0){
 			return i;
 		}
@@ -334,7 +334,7 @@ void mkdir(char *arg){
 	int ptr_entry = 0; // ponterio para entrada (otimização). 
 	char *str = arg;
 	if(strcmp("/", str) && root_dir[0].filename[0] == 0){
-		printf("mkdir: não foi possível criar o diretório \“%s\”: Diretório raiz inexistente.\n", str);
+		printf("mkdir: não foi possível criar o diretório \“%s\”: diretório raiz inexistente.\n", str);
 		return;
 	}
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
@@ -344,15 +344,15 @@ void mkdir(char *arg){
 	}
 	dir_entry_t *dir;
 	if(block == -3){ // se o caminho ate o arquivo for inválido
-		printf("mkdir: não foi possível criar o diretório “%s”: Arquivo ou diretório não encontrado.\n", arg);
+		printf("mkdir: não foi possível criar o diretório “%s”: arquivo ou diretório não encontrado.\n", arg);
 	}else if(block == -2){ // se o caminho até o arquivo for válido porém o arquivo não existir
 		
-		dir = is_root(bkp); // retorne o diretório.	
+		dir = is_root(bkp); // verificando se o diretório que o conterá é a raiz.
 		create_dir(dir, bkp, arg);
 	}else if(block == 65534){ // se o diretório a ser solicitada criação for a raiz.
 		
 		if(root_dir[0].filename[0] == '.'){ // se a raiz já estiver sido criada.
-			printf("mkdir: não foi possível criar o diretório \“/\”: Arquivo existe\n");
+			printf("mkdir: não foi possível criar o diretório \“/\”: arquivo existe\n");
 		}else{ // se não estiver sido.
 			// configurando o diretório root.
 			dir_entry_t *t = new_dir( 65534, 65534);
@@ -361,7 +361,7 @@ void mkdir(char *arg){
 			free(t);
 		}		
 	}else{ // se o arquivo existir.		
-		printf("mkdir: não foi possível criar o diretório \“%s\”: Arquivo existe\n", arg);		
+		printf("mkdir: não foi possível criar o diretório \“%s\”: arquivo existe\n", arg);		
 	}
 }
 
@@ -375,7 +375,7 @@ int create_file(char *arg, int size_file, int ignore){
 	char *str = arg;
 	if(strcmp("/", str) && root_dir[0].filename[0] == 0){
 		printf("diretório: %s\n", root_dir[0].filename);
-		printf("mkdir: não foi possível criar o arquivo \“%s\”: Diretório raiz inexistente.\n", str);
+		printf("mkdir: não foi possível criar o arquivo \“%s\”: diretório raiz inexistente.\n", str);
 		return -1;
 	}
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
@@ -387,10 +387,10 @@ int create_file(char *arg, int size_file, int ignore){
 	dir_entry_t *dir;
 	if(block == -3){ // se o caminho não for válido.
 		
-		printf("create: não foi possível criar '%s': Arquivo ou diretório não encontrado\n", arg);
+		printf("create: não foi possível criar '%s': arquivo ou diretório não encontrado\n", arg);
 	}else{ // se o caminho for inválido.
 
-		dir = is_root(bkp);
+		dir = is_root(bkp); // verificando se o diretório que o conterá é a raiz.
 		if(block == -2 || (ignore && !dir[ptr_entry].attributes)){ // se nao existir arquivo com mesmo nome ou existir 
 																   // e foi ordenado que ele seja sobrescrito.
 			if(block == -2){ // se a entrada de diretório não existe.
@@ -415,14 +415,14 @@ int create_file(char *arg, int size_file, int ignore){
 					return new_block; // retorna o bloco do novo arquivo criado.
 				}else{					
 					printf("create: não foi possível criar o arquivo \"%s\""
-					": Limite máximo do disco atingido.\n", str);
+					": limite máximo do disco atingido.\n", str);
 				}
 			}else{				
 				printf("create: não foi possível criar o arquivo \"%s\""
-				": Não há entradas disponíveis neste diretório.\n", str);
+				": não há entradas disponíveis neste diretório.\n", str);
 			}
 		}else{
-			printf("create: não foi possível criar o arquivo “%s”: Arquivo existe\n", arg);
+			printf("create: não foi possível criar o arquivo “%s”: arquivo existe\n", arg);
 		}
 	}
 	return -1;
@@ -451,7 +451,7 @@ int limit_disk(char *arg, char *path, short int *buff){
 		buff[i] = free_blocks(next + 1);
 		if(buff[i] == -1){ // se nao existir blocos disponíveis.
 			printf("write: não foi possível criar o arquivo \"%s\""
-					": Limite máximo do disco atingido.\n", path);
+					": limite máximo do disco atingido.\n", path);
 			return -1;
 		}
 		next = buff[i];
@@ -497,15 +497,15 @@ void append(char *arg, char *path){
 	}
 	if(block == -3){ // verificando se o caminho ate o arquivo e válido.
 
-		printf("append: não foi possível criar '%s': Arquivo ou diretório não encontrado\n", arg);
+		printf("append: não foi possível criar '%s': arquivo ou diretório não encontrado\n", arg);
 		return;
 	}else if(block == -2){ // se o arquivo não exite.
 		__write(arg, path);
 	}else{ // se o arquivo existir.
 		stage(10)
-		dir_entry_t *dir = is_root(bkp);
+		dir_entry_t *dir = is_root(bkp); // verificando se o arquivo esta na raiz.
 		if(dir[ptr_entry].attributes){ // se o arquivo for um diretório.
-			printf("create: não foi possível criar o arquivo “%s”: Arquivo existe\n", arg);
+			printf("create: não foi possível criar o arquivo “%s”: arquivo existe\n", arg);
 			return;
 		}
 		stage(11)
@@ -515,7 +515,7 @@ void append(char *arg, char *path){
 		int n_blocks = limit_disk(arg, path, buff);
 		if(n_blocks == -1){
 			printf("write: não foi possível criar o arquivo \"%s\""
-					": Limite máximo do disco atingido.\n", path);
+					": limite máximo do disco atingido.\n", path);
 			return;
 		}
 		stage(12)
@@ -590,6 +590,7 @@ void __read(char *arg){
 	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
 	int ptr_entry = 0; // ponterio para entrada (otimização). 
 	char *str = arg;
+	char *text;
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
@@ -598,17 +599,17 @@ void __read(char *arg){
 	}
 	if(block < -1){ // verificando se o caminho ate o arquivo e válido
 					// ou se o arquivo não existir.
-		printf("read: não foi possível acessar '%s': Arquivo ou diretório não encontrado\n", arg);
+		printf("read: não foi possível acessar '%s': arquivo ou diretório não encontrado\n", arg);
 		return;
 	}else{ // se ele existir.
-		dir_entry_t *dir = is_root(bkp);
+		dir_entry_t *dir = is_root(bkp); // verificando se o arquivo esta na raiz.
 		if(block == 65534 || dir[ptr_entry].attributes){ // se ele for um diretório.
-			printf("read: não foi possível ler '%s': Arquivo é um diretório.\n", arg);
+			printf("read: não foi possível ler '%s': arquivo é um diretório.\n", arg);
 			return;
 		}
 		int temp_block, i = 0, n_bytes = CLUSTER_SIZE;
 		temp_block = block;
-		char *text = malloc(dir[ptr_entry].size);
+		text = malloc(dir[ptr_entry].size);
 		while(1){ // enquanto não percorrer todos os blocos do arquivo.
 			
 			if(dir[ptr_entry].size / CLUSTER_SIZE == 0){ // se estiver no começo então escreva um bloco inteiro.
@@ -630,6 +631,62 @@ void __read(char *arg){
 		}
 		printf("%s\n", text);
 		//free(text);
+	}
+}
+
+void __unlink(char *arg){
+
+	int block = current_block; // recebe o bloco atual.
+	int bkp; // salva bloco do diretório anterior ao arquivo ou diretório procurado.
+	int ptr_entry = 0; // ponterio para entrada (otimização).
+	int i;
+	char *str = arg;
+	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
+						
+		bkp = block; // realizando bkp do bloco do diretório anterior.
+		block = findCluster(&str, block, &ptr_entry);
+		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);	
+	}
+	if(block < -1){ // verificando se o caminho ate o arquivo e válido
+					// ou se o arquivo não existir.
+		printf("unlink: não foi possível remover '%s': arquivo ou diretório não encontrado.\n", arg);
+		return;
+	}else if(block == 65534){ // se estiver tenando apagar a raiz.
+		for(i = 2; i < ENTRY_BY_CLUSTER; ++i){
+			if(root_dir[i].filename[0] != 0){
+				printf("unlink: não foi possível remover '/': diretório não vazio.\n");
+				return;
+			}
+		}
+		memset(root_dir, 0x00, CLUSTER_SIZE);
+		persist_on_disk(root_dir, CLUSTER_SIZE, ROOT_ENTRY(0)); // apagou todo o disco (aparentemente impossível na prática).
+	}else{
+		int last_block = block, j;
+		dir_entry_t *dir, *dir_target;
+		dir = is_root(bkp); // verificando se o diretório que o contém é a raiz.
+		if(dir[ptr_entry].attributes){ // se ele for um diretório.
+			dir_target = (dir_entry_t *) read_cluster(block);
+			for(i = 2; i < ENTRY_BY_CLUSTER; ++i){
+				if(dir_target[i].filename[0] != 0){
+					printf("unlink: não foi possível remover '%s': diretório não vazio.\n", arg);
+					return;
+				}
+			}
+		}
+		while(fat[last_block] != 65533){ // enquanto não for o último bloco do arquivo.
+			j = last_block;			
+			last_block = fat[last_block];
+			fat[j] = 65535; // marcando bloco como disponível.
+			persist_on_disk(&fat[j], 2, FAT_ENTRY(j));
+		}
+		fat[last_block] = 65535; // marcando o último bloco como disponível.
+		persist_on_disk(&fat[j], 2, FAT_ENTRY(last_block));
+		memset(&dir[ptr_entry], 0x00, ENTRY_BY_CLUSTER); // apagando a entrada no diretório pai.
+		if(dir == root_dir){	
+			persist_on_disk(&dir[ptr_entry], ENTRY_BY_CLUSTER, ROOT_ENTRY(ptr_entry));
+		}else{
+			persist_on_disk(&dir[ptr_entry], ENTRY_BY_CLUSTER, CLUSTER_DATA + (bkp * CLUSTER_SIZE) + (ptr_entry * ENTRY_BY_CLUSTER));
+		}
 	}
 }
 
