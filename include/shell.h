@@ -2,7 +2,7 @@
 #define shell_h
 
 #include "fat.h"
-
+#include <unistd.h>
 
 #define print(N) printf("comando: %s\n", N);
 

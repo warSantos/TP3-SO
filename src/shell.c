@@ -136,32 +136,29 @@ void shell(void){
 			char oculto = '-'; // parâmetro para arquivos ocultos.		
 			char info = '-'; // parâmetros para mostrar informações.
 			int optc = 0, options = 0;
-			printf("a param: %d, options: %d\n", parametros, options);
-			while(optc = getopt(parametros, comando, ":oi")) != -1){
-				printf("passou aqui\n");
+			optind = 0;
+			while((optc = getopt(parametros, comando, "oi")) != -1){
+				
 				switch(optc){
 					case 'o' :
-						oculto = 'o';
-						printf("parametro i, optarg: %s\n", optarg);
+						oculto = 'o';						
 						options++;
 						break;
 					case 'i' :
 						info = 'i';
-						printf("parametro o, optarg: %s\n", optarg);
 						options++;
 						break;
 					default :
-						printf("optarg %s\n", optarg);
 						break;
 				}
 			}
-			parametros -= options;
-			printf("param: %d, options: %d\n", parametros, options);
-			if(parametros == 1){
+			if((parametros - options) == 1){
 				ls("\0", oculto, info); // passa o diretório corrente.
 			}else{				
 				for(i = 1; i < parametros; ++i){
-					ls(comando[i], oculto, info);
+					if(comando[i][0] != '-' || strlen(comando[i]) > 2){
+						ls(comando[i], oculto, info);
+					}
 				}
 			}				
 		}else if(!strcmp("create", comando[0])){
