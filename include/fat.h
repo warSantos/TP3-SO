@@ -22,6 +22,9 @@
 #define ROOT_ENTRY(ENTRY_DIR) (sizeof(boot_block) + sizeof(fat) + (ENTRY_DIR) * 32)
 #define fat_name	"fat.part"
 
+// para divisão e multiplicação.
+int k_bytes;
+
 typedef struct _dir_entry_t
 {
 	unsigned char filename[18];

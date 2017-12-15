@@ -58,36 +58,34 @@ char **format(char *str, int *n_parametros){
 		++i;
 	}
 	j++;
-	comando = malloc(sizeof(char *) * j);
+	comando = malloc(j);
 	
 	// separando os comandos.
 	int indice = -1, cont = 0;
 	i = bkp;
-	stage(200)
-	char *temp = malloc(sizeof(char)*500);
-	stage(300)
-
+	//char *aux = malloc(500);
+	char aux[500];
 	while(1){
 
 		if(str[i] != ' ' && str[i] != '\0'){
 			
 			if(str[i] == '"'){ // copiando a string completa para o novo arguemnto.				
-				indice++;
-				comando[indice] = malloc(text_end - i);				
+				indice++;				
+				comando[indice] = malloc(text_end - i);								
 				strncpy(comando[indice], &str[i + 1], text_end - i - 1);
 				comando[indice][text_end - i - 1] = '\0';
 				for(i = text_end; str[i + 1] == ' '; ++i); // movendo o indice para depois da " (aspas) e
 				cont--;								   	   // também de possívies espaços.								
 			}else{		
-				temp[cont] = str[i];				
+				aux[cont] = str[i];				
 			}			
 		}else{
-			temp[cont] = '\0';
-			indice++;		
-			comando[indice] = malloc((strlen(temp) + 1));			
+			aux[cont] = '\0';
+			indice++;				
+			comando[indice] = malloc((strlen(aux) + 1));		
 			// copiando a string para sua respectiva posição na
 			// cadeia de comandos.
-			strcpy(comando[indice], temp);
+			strcpy(comando[indice], aux);
 			cont = -1;
 			// removendo excesso de espaços entre arguemtos.
 			while(str[i] != '\0' && str[i + 1] != '\0' && str[i + 1] == ' '){				
@@ -100,7 +98,7 @@ char **format(char *str, int *n_parametros){
 		}
 		++i;
 		++cont;
-	}	
+	}
 	// retorna a quantidade de parâmetros.
 	*n_parametros = j;
 	return comando;
@@ -110,8 +108,8 @@ void shell(void){
 	
 	char *str = malloc(1025);
 	mkdir("/");
-	//__write("teste write", "/file");
-	append("teste append", "/file");
+	__write("teste write", "/file");
+	//append("teste append", "/file");
 	while(1){
 		inicio:
 		str[0] = '\0';
@@ -190,7 +188,6 @@ void shell(void){
 			}
 			__write(comando[1], comando[2]);
 		}else if(!strcmp("append", comando[0])){
-			stage(1000)
 			append(comando[1], comando[2]);
 		}else if(!strcmp("read", comando[0])){
 			if(parametros == 1){
@@ -207,7 +204,13 @@ void shell(void){
 			}
 			printf("quit: este comando não possui parâmetros.\n");
 			goto inicio;			
-		}else{		
+		}else if(!strcmp("fat", comando[0])){
+			
+			int limit = atoi(comando[1]), i;
+			for(i = 0; i < limit; ++i){
+				printf("indice: %d, próximo: %d\n", i, fat[i]);
+			}
+		}else{
 			printf("comando %s não encontrado.\n", comando[0]);
 		}	
 		free(comando);
