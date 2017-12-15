@@ -182,10 +182,11 @@ void shell(void){
 				}				
 			}
 		}else if(!strcmp("write", comando[0])){
-			if(parametros != 3){
+			if(parametros != 3){				
 				printf("write: não foi possível escrever no arquivo: parâmetros inválidos.\n");
 				goto inicio;
 			}
+			//printf("\n\nparametro: %s\n\n", comando[1]);
 			__write(comando[1], comando[2]);
 		}else if(!strcmp("append", comando[0])){
 			append(comando[1], comando[2]);

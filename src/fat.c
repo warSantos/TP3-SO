@@ -536,9 +536,8 @@ void append(char *arg, char *path){
 		int len = strlen(arg) + 1;
 		while(fat[last_block] != 65533){ // enquanto não chegar no último bloco do arquivo.
 
-			last_block = fat[last_block];
-			printf("last_block: %d\n", last_block);
-		}		
+			last_block = fat[last_block];			
+		}
 		int str_rest = (dir[ptr_entry].size % k_bytes) - 1, i = 0;
 		if(str_rest){ // se o tamanho do arquivo mod CLUSTER_SIZE for > 0.
 
