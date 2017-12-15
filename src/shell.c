@@ -159,7 +159,7 @@ void shell(void){
 			}				
 		}else if(!strcmp("create", comando[0])){
 			if(parametros == 1){
-				printf("create: não foi possível criar o arquivo: parâmetros insuficcientes.\n");
+				printf("create: não foi possível criar o arquivo: parâmetros insuficientes.\n");
 			}else{
 				for(i = 1; i < parametros; ++i){
 					create_file(comando[i], 0, 0);	
@@ -167,7 +167,7 @@ void shell(void){
 			}			
 		}else if(!strcmp("mkdir", comando[0])){			
 			if(parametros == 1){
-				printf("mkdir: não foi possível criar o diretório: parâmetros insuficcientes.\n");
+				printf("mkdir: não foi possível criar o diretório: parâmetros insuficientes.\n");
 			}else{
 				for(i = 1; i < parametros; ++i){
 					mkdir(comando[i]);
@@ -175,7 +175,7 @@ void shell(void){
 			}
 		}else if(!strcmp("unlink", comando[0])){		
 			if(parametros == 1){
-				printf("unlink: não foi possível remover o arquivo: parâmetros insuficcientes.\n");
+				printf("unlink: não foi possível remover o arquivo: parâmetros insuficientes.\n");
 			}else{
 				for(i = 1; i < parametros; ++i){
 					__unlink(comando[i]);
@@ -192,7 +192,7 @@ void shell(void){
 			append(comando[1], comando[2]);
 		}else if(!strcmp("read", comando[0])){
 			if(parametros == 1){
-				printf("read: não foi possível ler o arquivo: parâmetros insuficcientes.\n");
+				printf("read: não foi possível ler o arquivo: parâmetros insuficientes.\n");
 			}else{
 				for(i = 1; i < parametros; ++i){
 					__read(comando[i]);
@@ -208,6 +208,9 @@ void shell(void){
 		}else if(!strcmp("fat", comando[0])){
 			
 			int limit = atoi(comando[1]), i;
+			if(limit > 4086){
+				limit = 4086;
+			}
 			for(i = 0; i < limit; ++i){
 				printf("indice: %d, próximo: %d\n", i, fat[i]);
 			}

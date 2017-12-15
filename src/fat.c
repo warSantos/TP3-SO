@@ -123,8 +123,7 @@ data_cluster *read_cluster(int block){
 	// alterando o ponteiro de diretório para o arquivo fat.part logo.	
 	FILE *ptr_file = fopen(fat_name, "rb");
 	data_cluster *d;
-	d = malloc(CLUSTER_SIZE);
-	printf("\tread: %ld / %ld\n", CLUSTER_DATA + (block * CLUSTER_SIZE), (CLUSTER_DATA + (block * CLUSTER_SIZE)) / k_bytes);
+	d = malloc(CLUSTER_SIZE);	
 	fseek(ptr_file, CLUSTER_DATA + (block * CLUSTER_SIZE), SEEK_SET);
 	fread(d, CLUSTER_SIZE, 1, ptr_file);
 	fclose(ptr_file);
@@ -381,8 +380,7 @@ int create_file(char *arg, int size_file, int ignore){
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
-		block = findCluster(&str, block, &ptr_entry);
-		//printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);	
+		block = findCluster(&str, block, &ptr_entry);		
 	}
 	dir_entry_t *dir;
 	if(block == -3){ // se o caminho não for válido.
@@ -404,8 +402,7 @@ int create_file(char *arg, int size_file, int ignore){
 					new_block = free_blocks(0);
 				}else{ // se sim.
 					new_block = block;
-				}
-				printf("new_block: %d\n", new_block);
+				}				
 				if(new_block > -1){ // se existir bloco livre.
 					set_dir_entry(dir, bkp, arg, new_entry, new_block, size_file, 0);
 					// atualizando a fat.
@@ -425,7 +422,8 @@ int create_file(char *arg, int size_file, int ignore){
 						}
 						fat[new_block] = 65533; //marcando novamnte o 1º bloco do arquivo como último.
 						persist_on_disk(&fat[new_block], 2, FAT_ENTRY(new_block));
-					}					
+					}
+					printf("new_block: %d\n", new_block);
 					return new_block; // retorna o bloco do novo arquivo criado.
 				}else{					
 					printf("create: não foi possível criar o arquivo \"%s\""
@@ -644,8 +642,7 @@ void __unlink(char *arg){
 	while(str[0] != '\0' && block > -3){ // enquanto não chegar no ultimo arquivo do caminho && não achar nada inválido.
 						
 		bkp = block; // realizando bkp do bloco do diretório anterior.
-		block = findCluster(&str, block, &ptr_entry);
-		printf("\tstr: %s, bloco: %d, bkp: %d\n", str, block, bkp);	
+		block = findCluster(&str, block, &ptr_entry);		
 	}
 	if(block < -1){ // verificando se o caminho ate o arquivo e válido
 					// ou se o arquivo não existir.
