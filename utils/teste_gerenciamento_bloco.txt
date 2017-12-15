@@ -1,0 +1,37 @@
+0  1  2  3  4 65535 
+ 
+1  2  3  4  5  next:0 
+1  2  3  4  5  next:0   alloc 
+-  2  3  4  5  next:1 
+-  2  3  4  5  next:1   alloc 
+-  -  3  4  5  next:2 
+-  -  3  4  5  next:2  alloc 
+-  -  -  4  5  next:3 
+-  -  -  4  5  next:3   free:0 
+4  -  -  0  5  next:3 
+4  -  -  0  5  next:3   free:1 
+4  0  -  1  5  next:3 
+4  0  -  1  5  next:3  free 2 
+4  0  1  2  5  next:3 
+4  0  1  2  5  next:3  alloc 
+4  0  1  -  5  next:2 
+4  0  1  -  5  next:2  free 3 
+4  0  3  1  5  next:2 
+4  0  3  1  5  next:2   alloc 
+4  0  -  1  5  next:3 
+4  0  -  1  5  next:3  alloc 
+4  0  -  -  5  next:1 
+4  0  -  -  5  next:1  alloc 
+4  -  -  -  5  next:0 
+4  -  -  -  5  next:0  alloc 
+-  -  -  -  5  next:4 
+-  -  -  -  5  next:4  alloc 
+-  -  -  -  -  next:5 
+-  -  -  -  -  next:5  free 3 
+-  -  -  5  -  next:3   
+-  -  -  5  -  next:3  free 0 
+5  -  -  0  -  next:3 
+5  -  -  0  -  next:3  alloc 
+5  -  -  -  -  next:0 
+5  -  -  -  -  next:0  alloc 
+-  -  -  -  -  next:5 
