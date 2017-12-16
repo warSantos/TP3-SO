@@ -108,8 +108,10 @@ void shell(void){
 	
 	char *str = malloc(1025);
 	mkdir("/");
-	__write("teste write", "/file");
+	//__write("teste write", "/file");
 	//append("teste append", "/file");
+	//__read("0a/1b");
+	//return;
 	while(1){
 		inicio:
 		str[0] = '\0';
@@ -206,13 +208,14 @@ void shell(void){
 			printf("quit: este comando não possui parâmetros.\n");
 			goto inicio;			
 		}else if(!strcmp("fat", comando[0])){
-			
-			int limit = atoi(comando[1]), i;
-			if(limit > 4086){
-				limit = 4086;
-			}
-			for(i = 0; i < limit; ++i){
-				printf("indice: %d, próximo: %d\n", i, fat[i]);
+			if(parametros > 1){
+				int limit = atoi(comando[1]), i;
+				if(limit > 4086){
+					limit = 4086;
+				}
+				for(i = 0; i < limit; ++i){
+					printf("indice: %d, próximo: %d\n", i, fat[i]);
+				}
 			}
 		}else if(!strcmp("generate", comando[0])){
 			

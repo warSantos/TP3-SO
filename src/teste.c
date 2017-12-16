@@ -30,8 +30,8 @@ char *get_text(int len){
 
 char random_algorithm(){
 
-    //return "mamumw"[random() % 6];
-    return "mmmmmm"[random() % 6];
+    return "mwmmmw"[random() % 6];
+    //return "mmmmmm"[random() % 6];
 }
 
 void popular(char *path, int block, int deep){
@@ -42,6 +42,7 @@ void popular(char *path, int block, int deep){
     int algoritmo; // recebe o char aleatório correspondente a um algoritmo.
     int size_text[4]; // vetor de configuração de tamanho dos arquivos.
     int cont = 0; // conta quantos arquivos ou diretórios foram criados.
+    int len; // tamanho da string para as funções __write e append.
     // Tamanho de arquivos
     size_text[0] = 100;
     size_text[1] = 500;
@@ -50,11 +51,13 @@ void popular(char *path, int block, int deep){
     dir_entry_t *dir = is_root(block);
     char simb;
     char arg[100];
-    //char nome[10];
+    char *text; // armazena o texto para as funções __write e append.
     empty_entry = 1;
     // enquanto existir entradas de diretório livres e o limite de arquivos não for atingido.
     while((empty_entry = free_entry(dir) > 0) && qtde_operacoes < limite_operacoes){
         
+        simb = (char) (97 + cont);
+        sprintf(arg, "%s%d%c", path, deep, simb);
         algoritmo = random_algorithm();
         switch(algoritmo){ // defini qual operação será realizada (write, append, unlink e mkdir)
 
@@ -62,9 +65,8 @@ void popular(char *path, int block, int deep){
                 //append();
                 break;
             case 'm': // mkdir
-                simb = (char) (97 + cont);
-                sprintf(arg, "%s%d%c", path, deep, simb);
-                printf("arg: %s altura: %d simb: %c\n", arg, deep, simb);
+                                
+                //printf("arg: %s altura: %d simb: %c\n", arg, deep, simb);
                 mkdir(arg);
                 cont++;
                 break;
@@ -72,7 +74,12 @@ void popular(char *path, int block, int deep){
                 //unlink();
                 break;
             case 'w': // write
-                //__write();
+                printf("len: %d %d\n", len, size_text[len]);
+                len = 3;//random() % 4;                
+                text = get_text(size_text[len]);
+                __write(text, arg);
+                free(text);
+                cont++;
                 break;
         }
         qtde_operacoes++;

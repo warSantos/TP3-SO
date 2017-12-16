@@ -25,7 +25,13 @@
 /// define o bloco de referẽncia para o diretório root.
 #define ROOT_BLOCK 65534
 
-// para divisão e multiplicação.
+/// define o valor de livre de um bloco.
+unsigned short not_used;
+
+/// define o valor de final de aruqivo.
+unsigned short final_file;
+
+/// para divisão e multiplicação (problema com CLUSTER_SIZE).
 int k_bytes;
 
 typedef struct _dir_entry_t
