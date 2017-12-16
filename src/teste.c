@@ -30,7 +30,7 @@ char *get_text(int len){
 
 char random_algorithm(){
 
-    return "mwmwmw"[random() % 6];
+    return "mumumu"[random() % 6];
     //return "mmmmmm"[random() % 6];
 }
 
@@ -39,18 +39,20 @@ void popular(char *path, int block, int deep){
     int qtde_operacoes = 0; // contador de quantidade de operações para cada diretório.
     int limite_operacoes = 5; // limite de subarquivos para cada diretório.    
     int empty_entry; // recebe entrada vazias do diretório.
-    int algoritmo; // recebe o char aleatório correspondente a um algoritmo.
-    int size_text[4]; // vetor de configuração de tamanho dos arquivos.
+    int algoritmo; // recebe o char aleatório correspondente a um algoritmo.    
     int cont = 0; // conta quantos arquivos ou diretórios foram criados.
     int len; // recebe valor aleatório entre 0 e 4.
+    int i;
+    int files[5] = {0, 0, 0, 0, 0}; // vetor de marcar posições de arquivos.
     // Tamanho de arquivos
+    int size_text[4]; // vetor de configuração de tamanho dos arquivos.
     size_text[0] = 100;
     size_text[1] = 500;
     size_text[2] = 1000;
     size_text[3] = 1500;
     dir_entry_t *dir = is_root(block);
     char simb;
-    char arg[100];
+    char new_path[100];
     char *text;
     empty_entry = 1;
     // enquanto existir entradas de diretório livres e o limite de arquivos não for atingido.
@@ -59,26 +61,48 @@ void popular(char *path, int block, int deep){
         algoritmo = random_algorithm();
         switch(algoritmo){ // defini qual operação será realizada (write, append, unlink e mkdir)
 
-            case 'a': // append
-                //append();
+            case 'a': // append                
+                for(i = 0; i < cont; ++i){
+                    if(files[i] == 1){
+                        simb = (char) (97 + i);
+                        sprintf(new_path, "%s%d%c", path, deep, simb);
+                        //printf("append: new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
+                        len = random() % 1;
+                        text = get_text(size_text[len]);
+                        append(text, new_path);
+                        files[i] = 0;
+                        break;
+                    }                        
+                }                                
                 break;
             case 'm': // mkdir
                 simb = (char) (97 + cont);
-                sprintf(arg, "%s%d%c", path, deep, simb);
-                printf("arg: %s altura: %d simb: %c\n", arg, deep, simb);
-                mkdir(arg);
-                cont++;
+                sprintf(new_path, "%s%d%c", path, deep, simb);
+                //printf("new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
+                mkdir(new_path);
+                files[cont] = 2;
+                cont++;                
                 break;
             case 'u': // unlink
-                //unlink();
+                for(i = 0; i < cont; ++i){
+                    if(files[i] == 1 || files[i] == 2){
+                        simb = (char) (97 + i);
+                        sprintf(new_path, "%s%d%c", path, deep, simb);
+                        printf("unlink: new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
+                        __unlink(new_path);
+                        files[i] = 0;
+                        break;
+                    }                        
+                }
                 break;
             case 'w': // write
                 simb = (char) (97 + cont);
-                sprintf(arg, "%s%d%c", path, deep, simb);
-                printf("arg: %s altura: %d simb: %c\n", arg, deep, simb);
-                len = random() % 4;
+                sprintf(new_path, "%s%d%c", path, deep, simb);
+                //printf("new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
+                len = (1 + random() % 2);
                 text = get_text(size_text[len]);
-                __write(text, arg);
+                __write(text, new_path);
+                files[cont] = 1;
                 cont++;
                 break;
         }
