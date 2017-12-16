@@ -76,6 +76,7 @@ int findCluster(char **path, int block, int *ptr_entry){
 				*ptr_entry = j; // economizar a pesquisa.
 				return root_dir[j].first_block;
 			}
+			//printf("name: %s attr: %d fb: %d\n", root_dir[j].filename, root_dir[j].attributes, root_dir[j].first_block);
 			j++;
 		}
 	}else{ // se for um caminho relativo.
@@ -221,7 +222,6 @@ void ls(char *arg, char oculto, char info){
 		if(dir[ptr_entry].attributes == 1){	// se a entrada corresponder a um diretório.
 			dir = (dir_entry_t *) read_cluster(block); // aponte para o diretório da respectiva entrada.
 			lista_dir(dir, oculto, info); // imprima o diretório.
-			free(dir);
 		}else{
 			//TO-DO, falta formatar a saída do ls no arquivo.
 			char *newDir = last_token(arg, '/');
@@ -300,7 +300,7 @@ void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str){
 			// Criando diretório com configurações iniciais.
 			dir_entry_t *new_d = new_dir(block, block_parent_dir);	
 			// atualizando a fat.
-			fat[block] = final_file; // final_file sinaliza que este é o último bloco.			
+			fat[block] = end_file; // end_file sinaliza que este é o último bloco.			
 			// persistindo a atualização da fat no arquivo.
 			persist_on_disk(&fat[block], 2, FAT_ENTRY(block));
 			// persistindo o novo diretório no disco.			
@@ -357,6 +357,7 @@ void mkdir(char *arg){
 			dir_entry_t *t = new_dir( ROOT_BLOCK, ROOT_BLOCK);
 			memcpy(root_dir, t, CLUSTER_SIZE);
 			persist_on_disk(root_dir, CLUSTER_SIZE, ROOT_ENTRY(0));
+			free(t);
 		}		
 	}else{ // se o arquivo existir.		
 		printf("mkdir: não foi possível criar o diretório \“%s\”: arquivo existe\n", arg);		
@@ -407,19 +408,19 @@ int create_file(char *arg, int size_file, int ignore){
 					// atualizando a fat.
 					// se o arquivo não existe
 					if(block == -2){
-						fat[new_block] = final_file; // final_file sinaliza que este é o último bloco.			
+						fat[new_block] = end_file; // end_file sinaliza que este é o último bloco.			
 						// persistindo a atualização da fat no arquivo.
 						persist_on_disk(&fat[new_block], 2, FAT_ENTRY(block));
 					}else{ //se o arquivo existe então remova os blocos dele da fat.
 						int removed_blocks = new_block, aux;
-						while(fat[removed_blocks] != final_file){
+						while(fat[removed_blocks] != end_file){
 							aux = removed_blocks;
 							removed_blocks = fat[removed_blocks];
 							fat[aux] = not_used;
 							// persistindo a atualização da fat no arquivo.
 							persist_on_disk(&fat[aux], 2, FAT_ENTRY(aux));
 						}
-						fat[new_block] = final_file; //marcando novamnte o 1º bloco do arquivo como último.
+						fat[new_block] = end_file; //marcando novamnte o 1º bloco do arquivo como último.
 						persist_on_disk(&fat[new_block], 2, FAT_ENTRY(new_block));
 					}
 					printf("new_block: %d\n", new_block);
@@ -486,7 +487,7 @@ void __write(char *arg, char *path){
 
 		if(i == n_blocks - 1){ // se for o restante da da string.
 			persist_on_disk(arg + (i * k_bytes), strlen(arg + (i * k_bytes)) + 1, (buff[i] * k_bytes) + CLUSTER_DATA);
-			fat[buff[i]] = final_file; // marcando o bloco como último.			
+			fat[buff[i]] = end_file; // marcando o bloco como último.			
 		}else{ // se for o início ou o começo.
 			persist_on_disk(arg + (i * k_bytes), CLUSTER_SIZE, (buff[i] * k_bytes) + CLUSTER_DATA);
 			fat[buff[i]] = buff[i + 1];
@@ -531,7 +532,7 @@ void append(char *arg, char *path){
 		}		
 		int last_block = block;
 		int len = strlen(arg) + 1;
-		while(fat[last_block] != final_file){ // enquanto não chegar no último bloco do arquivo.
+		while(fat[last_block] != end_file){ // enquanto não chegar no último bloco do arquivo.
 
 			last_block = fat[last_block];			
 		}
@@ -557,7 +558,7 @@ void append(char *arg, char *path){
 					persist_on_disk(&arg[((i * CLUSTER_SIZE) + free_space)],
 						strlen(&arg[((i * CLUSTER_SIZE) + free_space)]),
 							(buff[i] * CLUSTER_SIZE) + CLUSTER_DATA);
-					fat[buff[i]] = final_file; // marcando o bloco como último.
+					fat[buff[i]] = end_file; // marcando o bloco como último.
 				}else{ // se for o início ou o meio.
 					
 					persist_on_disk(&arg[((i * CLUSTER_SIZE) + free_space)], CLUSTER_SIZE, (buff[i] * CLUSTER_SIZE) + CLUSTER_DATA);
@@ -574,7 +575,7 @@ void append(char *arg, char *path){
 				if(i == n_blocks - 1){ // se for o restante da da string.
 					
 					persist_on_disk(arg + (i * CLUSTER_SIZE), strlen(arg + (i * CLUSTER_SIZE)) + 1, (buff[i] * CLUSTER_SIZE) + CLUSTER_DATA);
-					fat[buff[i]] = final_file; // marcando o bloco como último.
+					fat[buff[i]] = end_file; // marcando o bloco como último.
 				}else{ // se for o início ou o começo.
 
 					persist_on_disk(arg + (i * CLUSTER_SIZE), CLUSTER_SIZE, (buff[i] * CLUSTER_SIZE) + CLUSTER_DATA);
@@ -611,35 +612,21 @@ void __read(char *arg){
 		}
 		int temp_block, i = 0, n_bytes = k_bytes;
 		temp_block = block;
-		data_cluster *data_temp;
-		printf("temp_block: %d\n", temp_block);
 		char text[dir[ptr_entry].size];
-		stage(1)
 		while(1){ // enquanto não percorrer todos os blocos do arquivo.
-			stage(2)			
+						
 			if((dir[ptr_entry].size / k_bytes) == 0){ // se estiver no começo então escreva um bloco inteiro.				
 				n_bytes = dir[ptr_entry].size % k_bytes;
 			}
-			stage(3)
-			data_temp = read_cluster(temp_block);
-			memcpy(&text[(i * CLUSTER_SIZE)], data_temp, n_bytes);
-			stage(4)			
-			if(fat[temp_block] == final_file){ // se este for o último bloco do arquivo.					
+			memcpy(&text[(i * CLUSTER_SIZE)], read_cluster(temp_block), n_bytes);
+			if(fat[temp_block] == end_file){ // se este for o último bloco do arquivo.	
+				
 				break;
 			}
-			stage(5)
-			printf("fat[temp_block]: %d\n", fat[temp_block]);
-			temp_block = fat[temp_block];			
+			temp_block = fat[temp_block];
 			++i;
 		}
-		stage(6)
-		printf("%c\n", text[dir[ptr_entry].size - 5]);
-		if(text[dir[ptr_entry].size - 5] == '\0'){
-			stage(10)
-		}else{
-
-		}
-		stage(7)
+		printf("%s\n", text);
 	}
 }
 
@@ -677,13 +664,11 @@ void __unlink(char *arg){
 			for(i = 2; i < ENTRY_BY_CLUSTER; ++i){
 				if(dir_target[i].filename[0] != 0){
 					printf("unlink: não foi possível remover '%s': diretório não vazio.\n", arg);
-					free(dir_target);
 					return;
 				}
 			}
-			free(dir_target);
 		}
-		while(fat[last_block] != final_file){ // enquanto não for o último bloco do arquivo.
+		while(fat[last_block] != end_file){ // enquanto não for o último bloco do arquivo.
 			j = last_block;			
 			last_block = fat[last_block];
 			fat[j] = not_used; // marcando bloco como disponível.

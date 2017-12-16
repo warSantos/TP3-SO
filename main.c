@@ -2,11 +2,11 @@
 
 int main(int argc, char **argv){
 
-	not_used = 65535;
-	final_file = 65533;
 	k_bytes = 1024;
 	pwd[0] = '/'; // colocando o shell inicial na raiz do sistema.
-	current_block = 65534; // mirando o cluster para o a / "raiz".
+	current_block = 65534; // direcionando o cluster para o a / "raiz".
+	not_used = 65535; // valor de bloco livre.
+	end_file = 65533; // valor de último bloco.
 	// ### DEBUG ###
 	
 	if(fopen(fat_name, "r") == NULL){
