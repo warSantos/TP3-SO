@@ -43,7 +43,7 @@ int findCluster(char **path, int block, int *ptr_entry){
 		return block;
 	}else if((*path)[0] == '/' && (*path)[1] == '\0'){ // se for o diretório raiz.
 		(*path)++; // move o ponteiro para \0.
-		return 65534; // 65534 representa o diretório root.
+		return ROOT_BLOCK; // ROOT_BLOCK representa o diretório root.
 	}
 	int i = 0, j;
 	while((*path)[i] != '/' && (*path)[i] != '\0'){
@@ -116,7 +116,7 @@ int findCluster(char **path, int block, int *ptr_entry){
 
 data_cluster *read_cluster(int block){
 		
-	if(block == 65534){ // alterando o ponteiro para o diretório root.
+	if(block == ROOT_BLOCK){ // alterando o ponteiro para o diretório root.
 		
 		return (data_cluster *) root_dir;
 	}
@@ -214,7 +214,7 @@ void ls(char *arg, char oculto, char info){
 	if(block < -1){ // se o caminho até o arquivo for inválido.
 
 		printf("ls: não foi possível acessar '%s': Arquivo ou diretório não encontrado\n", arg);
-	}else if(block == 65534){ // se for para listar a raiz
+	}else if(block == ROOT_BLOCK){ // se for para listar a raiz
 
 		lista_dir(root_dir, oculto, info); // lista a raiz.
 	}else if(block > -1){// se for válido e não for a raiz.
@@ -348,13 +348,13 @@ void mkdir(char *arg){
 		
 		dir = is_root(bkp); // verificando se o diretório que o conterá é a raiz.
 		create_dir(dir, bkp, arg);
-	}else if(block == 65534){ // se o diretório a ser solicitada criação for a raiz.
+	}else if(block == ROOT_BLOCK){ // se o diretório a ser solicitada criação for a raiz.
 		
 		if(root_dir[0].filename[0] == '.'){ // se a raiz já estiver sido criada.
 			printf("mkdir: não foi possível criar o diretório \“/\”: arquivo existe\n");
 		}else{ // se não estiver sido.
 			// configurando o diretório root.
-			dir_entry_t *t = new_dir( 65534, 65534);
+			dir_entry_t *t = new_dir( ROOT_BLOCK, ROOT_BLOCK);
 			memcpy(root_dir, t, CLUSTER_SIZE);
 			persist_on_disk(root_dir, CLUSTER_SIZE, ROOT_ENTRY(0));
 			free(t);
@@ -606,7 +606,7 @@ void __read(char *arg){
 		return;
 	}else{ // se ele existir.
 		dir_entry_t *dir = is_root(bkp); // verificando se o arquivo esta na raiz.
-		if(block == 65534 || dir[ptr_entry].attributes){ // se ele for um diretório.
+		if(block == ROOT_BLOCK || dir[ptr_entry].attributes){ // se ele for um diretório.
 			printf("read: não foi possível ler '%s': arquivo é um diretório.\n", arg);
 			return;
 		}
@@ -646,7 +646,7 @@ void __unlink(char *arg){
 					// ou se o arquivo não existir.
 		printf("unlink: não foi possível remover '%s': arquivo ou diretório não encontrado.\n", arg);
 		return;
-	}else if(block == 65534){ // se estiver tenando apagar a raiz.
+	}else if(block == ROOT_BLOCK){ // se estiver tenando apagar a raiz.
 		for(i = 2; i < ENTRY_BY_CLUSTER; ++i){
 			if(root_dir[i].filename[0] != 0){
 				printf("unlink: não foi possível remover '/': diretório não vazio.\n");
