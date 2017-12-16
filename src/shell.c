@@ -214,9 +214,15 @@ void shell(void){
 			for(i = 0; i < limit; ++i){
 				printf("indice: %d, próximo: %d\n", i, fat[i]);
 			}
+		}else if(!strcmp("generate", comando[0])){
+			
+			teste_generator();
 		}else{
 			printf("comando %s não encontrado.\n", comando[0]);
-		}	
-		free(comando);
+		}
+		//TO-DO corrigi falha de segmentação apóos liberar a memória da string
+		// provavelmente e porque uma parte dela deve estar apontando para null.
+		// fazer função para liberar a memória da matriz.	
+		//free(comando);
 	}
 }

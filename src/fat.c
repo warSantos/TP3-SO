@@ -135,7 +135,7 @@ dir_entry_t *is_root(int block){
 	return (dir_entry_t *) read_cluster(block);
 }
 
-void init(){
+void init(void){
 
 	FILE* ptr_file;
 	int i;
@@ -162,7 +162,7 @@ void init(){
 	fclose(ptr_file);
 }
 
-void load(){
+void load(void){
 
 	FILE* ptr_file;	
 	ptr_file = fopen(fat_name, "rb+");
@@ -613,8 +613,6 @@ void __read(char *arg){
 		int temp_block, i = 0, n_bytes = k_bytes;
 		temp_block = block;
 		char text[dir[ptr_entry].size];
-		
-		stage(dir[ptr_entry].size)
 		while(1){ // enquanto não percorrer todos os blocos do arquivo.
 						
 			if((dir[ptr_entry].size / k_bytes) == 0){ // se estiver no começo então escreva um bloco inteiro.				

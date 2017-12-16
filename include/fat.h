@@ -20,7 +20,10 @@
 #define FAT_ENTRY(ENTRY_BLOCK) (sizeof(boot_block) + (2 * ENTRY_BLOCK))
 /// Mapeia entrada de diretórios da raiz no disco.
 #define ROOT_ENTRY(ENTRY_DIR) (sizeof(boot_block) + sizeof(fat) + (ENTRY_DIR) * 32)
+/// nome dado a partição (arquivo onde é realizado o descarregamento de dados).
 #define fat_name	"fat.part"
+/// define o bloco de referẽncia para o diretório root.
+#define ROOT_BLOCK 65534
 
 // para divisão e multiplicação.
 int k_bytes;
@@ -100,9 +103,9 @@ data_cluster *read_cluster(int block);
 /// É a função read_cluster com casting para (dir_entry *).
 dir_entry_t *is_root(int block);
 
-void init();
+void init(void);
 
-void load();
+void load(void);
 
 /// Imprime os atributos das entradas de um diretório
 void lista_dir(dir_entry_t *dir, char oculto, char info);
