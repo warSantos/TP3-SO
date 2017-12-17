@@ -422,8 +422,7 @@ int create_file(char *arg, int size_file, int ignore){
 						}
 						fat[new_block] = end_file; //marcando novamnte o 1º bloco do arquivo como último.
 						persist_on_disk(&fat[new_block], 2, FAT_ENTRY(new_block));
-					}
-					printf("new_block: %d\n", new_block);
+					}					
 					return new_block; // retorna o bloco do novo arquivo criado.
 				}else{					
 					printf("create: não foi possível criar o arquivo \"%s\""
@@ -540,8 +539,6 @@ void append(char *arg, char *path){
 					": limite máximo do disco atingido.\n", path);
 			return;
 		}
-		printf("len: %d\n", len);
-		printf("str_rest: %d\n", str_rest);
 		if(str_rest){ // se o tamanho do arquivo mod k_bytes for > 0.
 			// realizando a primeira escrita (preenchendo o restante do bloco).			
 			if(free_space <= len){ // se o espaço livre no bloco for menor que a string a ser escrita.
@@ -684,47 +681,5 @@ void __unlink(char *arg){
 		}else{
 			persist_on_disk(&dir[ptr_entry], ENTRY_BY_CLUSTER, CLUSTER_DATA + (bkp * k_bytes) + (ptr_entry * ENTRY_BY_CLUSTER));
 		}
-	}
-}
-
-/// ### GERENCIAMENTO DE BLOCOS ####
-
-int available_block(){
-	if(next_available_block != NUM_CLUSTER){
-		return fat_sucessors[next_available_block];
-	}else{
-		return -1;
-	}
-}
-
-void clear_block(int index){
-	//Se o bloco já está livre, não é necessário executar essa função.
-	if(fat_sucessors[index] > -1){
-		//Insira o código para liberar a posição fat[index] aqui
-		if(next_available_block != NUM_CLUSTER){
-			//Existe pelo menos um bloco livre.
-			int previous_sucessor = fat_sucessors[index];
-			fat_sucessors[index]=previous_sucessor;
-			//fat[index] = null;
-			fat_sucessors[next_available_block]=index;
-		}else{
-			//No momento, não existe nenhum bloco disponível.
-			fat_sucessors[index] = NUM_CLUSTER;
-			fat[index] = not_used;
-			next_available_block = index;
-		}
-	}
-}
-
-int allocate_block(){
-	if(next_available_block != NUM_CLUSTER){
-		int previous_block = next_available_block;
-		int previous_value = fat_sucessors[next_available_block];
-		fat_sucessors[next_available_block] = -1;
-		fat[next_available_block] = previous_block; //Escreve os dados de fato na FAT.
-		next_available_block = previous_value;
-		return previous_block;
-	}else{
-		return -1;
 	}
 }

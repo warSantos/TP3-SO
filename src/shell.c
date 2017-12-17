@@ -218,6 +218,8 @@ void shell(void){
 		}else if(!strcmp("generate", comando[0])){
 			
 			teste_generator();
+		}else if(!strcmp("frag", comando[0])){
+			fragmentacao();
 		}else{
 			printf("comando %s não encontrado.\n", comando[0]);
 		}

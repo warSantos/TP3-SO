@@ -209,14 +209,6 @@ void __read(char *arg);
 */
 void __unlink(char *arg);
 
-/// ### GERENCIAMENTO DE BLOCOS ####
-
-int available_block();
-
-void clear_block(int index);
-
-int allocate_block();
-
 /// DEBUG MACROS
 
 #define stage(N) printf("Ponto: %d\n", N);

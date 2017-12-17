@@ -17,7 +17,7 @@ char random_algorithm();
  * Realiza operações em um vetor, principalmente criar arquivos
  * e diretórios porém também pode remove-los.
 */
-void popular(char *path, int block, int altura);
+void popular(char *path, int block, int altura, int *n_operacao);
 
 /*
  * Cria uma arvore de diretórios com arquivos
@@ -26,12 +26,19 @@ void popular(char *path, int block, int altura);
  * Possui o objetivo de gerar a segmentação de blocos
  * na FAT de forma automática.
 */
-void builder_tree(char *path, int block, int altura, int deep);
+void builder_tree(char *path, int block, int altura, int deep, int *n_operacao);
 
 /*
  * Chama a função builder_tree e inicia as recursões a partir
  * do diretório raiz.
 */
 void teste_generator();
+
+/*
+ * Calcula os nível de fragmentação da fat, baseado no númeoro
+ * de aruqivos maiores que 1024 e no número de acessos não 
+ * adjacentes.
+*/
+void fragmentacao();
 
 #endif

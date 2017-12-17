@@ -12,17 +12,26 @@ char *get_text(int len){
 
     char *text;
     switch(len){
-        case 100:
+        case 250:
             text = set_text(len, 'a');
             break;
-        case 500:
+        case 750:
             text = set_text(len, 'b');
             break;
         case 1000:
             text = set_text(len, 'c');
             break;
-        case 1500:
+        case 1250:
             text = set_text(len, 'd');
+            break;
+        case 1500:
+            text = set_text(len, 'e');
+            break;
+        case 1750:
+            text = set_text(len, 'f');
+            break;
+        case 2000:
+            text = set_text(len, 'g');
             break;
     }
     return text;
@@ -30,10 +39,10 @@ char *get_text(int len){
 
 char random_algorithm(){
 
-    return "mmmmwwwaau"[random() % 10];
+    return "mmmmmmwwwwaaaaauuuuu"[random() % 20];
 }
 
-void popular(char *path, int block, int deep){
+void popular(char *path, int block, int deep, int *n_operacao){
 
     int qtde_operacoes = 0; // contador de quantidade de operações para cada diretório.
     int limite_operacoes = 10; // limite de subarquivos para cada diretório.    
@@ -42,13 +51,16 @@ void popular(char *path, int block, int deep){
     int cont = 0; // conta quantos arquivos ou diretórios foram criados.
     int len; // recebe valor aleatório entre 0 e 4.
     int i;
-    int files[10] = {0, 0, 0, 0, 0}; // vetor de marcar posições de arquivos.
+    int files[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // vetor para marcar posições de arquivos.
     // Tamanho de arquivos
-    int size_text[4]; // vetor de configuração de tamanho dos arquivos.
-    size_text[0] = 100;
-    size_text[1] = 500;
+    int size_text[7]; // vetor de configuração de tamanho dos arquivos.
+    size_text[0] = 250;
+    size_text[1] = 750;
     size_text[2] = 1000;
-    size_text[3] = 1500;
+    size_text[3] = 1250;
+    size_text[4] = 1500;
+    size_text[5] = 1750;
+    size_text[6] = 2000;
     dir_entry_t *dir = is_root(block);
     char simb;
     char new_path[100];
@@ -65,54 +77,54 @@ void popular(char *path, int block, int deep){
                     if(files[i] == 1){
                         simb = (char) (97 + i);
                         sprintf(new_path, "%s%d%c", path, deep, simb);
-                        //printf("append: new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
-                        len = random() % 4;
+                        len = random() % 7;
                         text = get_text(size_text[len]);
                         append(text, new_path);
                         files[i] = 0;
                         break;
                     }
                 }
+                n_operacao[0]++;
                 break;
             case 'm': // mkdir
                 simb = (char) (97 + cont);
                 sprintf(new_path, "%s%d%c", path, deep, simb);
-                //printf("new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
                 mkdir(new_path);
                 files[cont] = 2;
                 cont++;
+                n_operacao[1]++;
                 break;
             case 'u': // unlink
                 for(i = 0; i < cont; ++i){
                     if(files[i] == 1 || files[i] == 2){
                         simb = (char) (97 + i);
-                        sprintf(new_path, "%s%d%c", path, deep, simb);
-                        printf("unlink: new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
+                        sprintf(new_path, "%s%d%c", path, deep, simb);                        
                         __unlink(new_path);
                         files[i] = 0;
                         break;
                     }   
                 }
+                n_operacao[2]++;
                 break;
             case 'w': // write
                 simb = (char) (97 + cont);
                 sprintf(new_path, "%s%d%c", path, deep, simb);
-                //printf("new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
-                len = random() % 4;
+                len = random() % 7;
                 text = get_text(size_text[len]);
                 __write(text, new_path);
                 files[cont] = 1;
                 cont++;
+                n_operacao[3]++;
                 break;
         }
         qtde_operacoes++;
     }
 }
 
-void builder_tree(char *path, int block, int altura, int deep){
+void builder_tree(char *path, int block, int altura, int deep, int *n_operacao){
 
     // populando o diretório.
-    popular(path, block, deep); 
+    popular(path, block, deep, n_operacao); 
     if(altura == deep) // se estiver atingido o limite de altura da arvore, então retorne.
         return;
     dir_entry_t *dir = is_root(block);
@@ -124,7 +136,7 @@ void builder_tree(char *path, int block, int altura, int deep){
 
             sprintf(new_arg, "%s%s/", path, dir[ptr_entry].filename);  
             // chamando a recursão
-            builder_tree(new_arg, dir[ptr_entry].first_block, altura, deep + 1);
+            builder_tree(new_arg, dir[ptr_entry].first_block, altura, deep + 1, n_operacao);
         }       
     }
 }
@@ -134,16 +146,68 @@ void teste_generator(){
     srandom(time(NULL));
     init(); // formatando o disco
     mkdir("/"); // criando o diretório barra.
-    int altura = 5; // altura da arvore de diretórios.
+    int altura = 6; // altura da arvore de diretórios.
+    
     // iniciando a árvore a partir da raiz.
-    builder_tree("/", ROOT_BLOCK, altura, 0);
+     int n_operacao[4] = {0, 0, 0, 0}; // vetor para contabilizar a qtde de cada uma operação
+    builder_tree("/", ROOT_BLOCK, altura, 0, n_operacao);
+    printf("appends:\t%d\n", n_operacao[0]);
+    printf("mkdir:\t\t%d\n", n_operacao[1]);
+    printf("unlinks:\t%d\n", n_operacao[2]);
+    printf("writes:\t\t%d\n", n_operacao[3]);
+}
+
+void fragmentacao(){
+
+    int single_block = 0; // contabiliza a quantidade de arquivos com tamanho <= 1024 (um bloco).
+    int mult_block = 0; // contabiliza a quantidade de arquivos com tamanho > 1024.
+    int first_block; // recebe o bloco inicial de um arquivo.
+    int n_adj = 0; // contabiliza o número de leituras adjacentes.
+    int n_not_adj = 0;
+    int i;
+    int *vetor = calloc(4086, sizeof(int)); // marca os arquivos já acessados.
+    for(i = 0; i < 4086; ++i){
+        if(fat[i] != not_used){ // se estiver ocupado
+            if(!vetor[i]){ // se ainda não estiver passado por este bloco.                
+                if(fat[i] == end_file){ // se for um arquivo de um único bloco e ainda não analisado.
+                    single_block++;
+                    vetor[i] = 1;
+                }else if(fat[i] < not_used){
+                    mult_block++;
+                    first_block = i;                                      
+                    while(fat[first_block] != end_file){ // enquanto não cheagar no fim do arquivo.
+                        vetor[first_block] = 1;
+                        if(first_block == fat[first_block] - 1){ // se o bloco for adjacente ao último lido.
+                            n_adj++;
+                        }else{
+                            n_not_adj++;
+                        }
+                        first_block = fat[first_block];
+                    }
+                    vetor[first_block] = 1;                    
+                }
+            }
+        }
+    }
+    printf("Qtde de arquivos e diretórios......: %d\n", mult_block + single_block);
+    printf("Arquivos <= 1024 bytes.............: %d\n", single_block);
+    printf("Arquivos > 1024 bytes..............: %d\n", mult_block);
+    printf("Acessos contíguos..................: %d\n", n_adj);
+    printf("Acessos não contíguos..............: %d\n", n_not_adj);
+    printf("Média de seguimentação por arquivo.: %.2f\n", (n_not_adj / (float) mult_block));
+    free(vetor);
 }
 
 /*
-
-    popula
-    se nao esta no limite da altura da arvore (deep == altura)
-        chama reccursao para seus filhos
-    se estiver
-        retorne
+    enquanto nao for atingido o final da fat
+        se encontrar um bloco que aponta para algum lugar
+                && e este bloco não tiver sido marcado
+            se ele for um arquivo único
+                aumente 1 nos arquivos com um bloco
+            se não
+                enquanto não chegar no seu ultimo bloco
+                    se realizar um acesso nao adjacente
+                        acesso_nao_adjacente++
+                    se nao
+                        acesso_contiguo++
 */
