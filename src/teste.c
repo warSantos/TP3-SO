@@ -36,13 +36,13 @@ char random_algorithm(){
 void popular(char *path, int block, int deep){
 
     int qtde_operacoes = 0; // contador de quantidade de operações para cada diretório.
-    int limite_operacoes = 5; // limite de subarquivos para cada diretório.    
+    int limite_operacoes = 10; // limite de subarquivos para cada diretório.    
     int empty_entry; // recebe entrada vazias do diretório.
     int algoritmo; // recebe o char aleatório correspondente a um algoritmo.    
     int cont = 0; // conta quantos arquivos ou diretórios foram criados.
     int len; // recebe valor aleatório entre 0 e 4.
     int i;
-    int files[5] = {0, 0, 0, 0, 0}; // vetor de marcar posições de arquivos.
+    int files[10] = {0, 0, 0, 0, 0}; // vetor de marcar posições de arquivos.
     // Tamanho de arquivos
     int size_text[4]; // vetor de configuração de tamanho dos arquivos.
     size_text[0] = 100;
@@ -134,7 +134,7 @@ void teste_generator(){
     srandom(time(NULL));
     init(); // formatando o disco
     mkdir("/"); // criando o diretório barra.
-    int altura = 3; // altura da arvore de diretórios.
+    int altura = 5; // altura da arvore de diretórios.
     // iniciando a árvore a partir da raiz.
     builder_tree("/", ROOT_BLOCK, altura, 0);
 }

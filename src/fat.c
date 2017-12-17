@@ -616,13 +616,12 @@ void __read(char *arg){
 		temp_block = block;
 		char text[dir[ptr_entry].size];
 		while(1){ // enquanto não percorrer todos os blocos do arquivo.
-						
-			if((dir[ptr_entry].size / (k_bytes * (i + 1))) == 0){ // se estiver no começo então escreva um bloco inteiro.				
+			if((dir[ptr_entry].size / (k_bytes * (i + 1))) == 0){ // se estiver no começo então escreva um bloco inteiro.
 				n_bytes = dir[ptr_entry].size % k_bytes;
 			}
 			memcpy(&text[(i * k_bytes)], read_cluster(temp_block), n_bytes);
-			if(fat[temp_block] == end_file){ // se este for o último bloco do arquivo.	
-				
+			if(fat[temp_block] == end_file){ // se este for o último bloco do arquivo.
+
 				break;
 			}
 			temp_block = fat[temp_block];
@@ -661,6 +660,7 @@ void __unlink(char *arg){
 		int last_block = block, j;
 		dir_entry_t *dir, *dir_target;
 		dir = is_root(bkp); // verificando se o diretório que o contém é a raiz.
+		
 		if(dir[ptr_entry].attributes){ // se ele for um diretório.
 			dir_target = (dir_entry_t *) read_cluster(block);
 			for(i = 2; i < ENTRY_BY_CLUSTER; ++i){
@@ -677,7 +677,7 @@ void __unlink(char *arg){
 			persist_on_disk(&fat[j], 2, FAT_ENTRY(j));
 		}
 		fat[last_block] = not_used; // marcando o último bloco como disponível.
-		persist_on_disk(&fat[j], 2, FAT_ENTRY(last_block));
+		persist_on_disk(&fat[last_block], 2, FAT_ENTRY(last_block));
 		memset(&dir[ptr_entry], 0x00, ENTRY_BY_CLUSTER); // apagando a entrada no diretório pai.
 		if(dir == root_dir){	
 			persist_on_disk(&dir[ptr_entry], ENTRY_BY_CLUSTER, ROOT_ENTRY(ptr_entry));
