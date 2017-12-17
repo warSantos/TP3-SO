@@ -30,8 +30,7 @@ char *get_text(int len){
 
 char random_algorithm(){
 
-    return "mumumu"[random() % 6];
-    //return "mmmmmm"[random() % 6];
+    return "mmmmwwwaau"[random() % 10];
 }
 
 void popular(char *path, int block, int deep){
@@ -67,13 +66,13 @@ void popular(char *path, int block, int deep){
                         simb = (char) (97 + i);
                         sprintf(new_path, "%s%d%c", path, deep, simb);
                         //printf("append: new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
-                        len = random() % 1;
+                        len = random() % 4;
                         text = get_text(size_text[len]);
                         append(text, new_path);
                         files[i] = 0;
                         break;
-                    }                        
-                }                                
+                    }
+                }
                 break;
             case 'm': // mkdir
                 simb = (char) (97 + cont);
@@ -81,7 +80,7 @@ void popular(char *path, int block, int deep){
                 //printf("new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
                 mkdir(new_path);
                 files[cont] = 2;
-                cont++;                
+                cont++;
                 break;
             case 'u': // unlink
                 for(i = 0; i < cont; ++i){
@@ -92,14 +91,14 @@ void popular(char *path, int block, int deep){
                         __unlink(new_path);
                         files[i] = 0;
                         break;
-                    }                        
+                    }   
                 }
                 break;
             case 'w': // write
                 simb = (char) (97 + cont);
                 sprintf(new_path, "%s%d%c", path, deep, simb);
                 //printf("new_path: %s altura: %d simb: %c\n", new_path, deep, simb);
-                len = (1 + random() % 2);
+                len = random() % 4;
                 text = get_text(size_text[len]);
                 __write(text, new_path);
                 files[cont] = 1;
@@ -126,7 +125,7 @@ void builder_tree(char *path, int block, int altura, int deep){
             sprintf(new_arg, "%s%s/", path, dir[ptr_entry].filename);  
             // chamando a recursão
             builder_tree(new_arg, dir[ptr_entry].first_block, altura, deep + 1);
-        }        
+        }       
     }
 }
 
