@@ -207,20 +207,44 @@ void shell(void){
 			printf("quit: este comando não possui parâmetros.\n");
 			goto inicio;			
 		}else if(!strcmp("fat", comando[0])){
-			if(parametros > 1){ // se a quantidade ade argumentos for válida.
-				int limit = atoi(comando[1]), i;
-				if(limit > 4086){
-					limit = 4086;
+			if(parametros > 2){
+				int begin, end;
+				end = atoi(comando[2]);
+				if(end > 0 && end < 4086){
+					begin = atoi(comando[1]);
+					if(begin > 0 && begin < end){
+						for(i = begin; i < end; ++i){
+							printf("indice: %d, próximo: %d\n", i, fat[i]);
+						}
+					}else{
+						printf("fat: não foi possível visualizar a fat: valor inferior inválido.\n");
+					}					
+				}else{
+					printf("fat: não foi possível visualizar a fat: valor superior inválido.\n");
 				}
-				for(i = 0; i < limit; ++i){
-					printf("indice: %d, próximo: %d\n", i, fat[i]);
-				}
+			}else{
+				printf("fat: não foi possível mostrar a fat: espera por parâmetro.\n");
 			}
 		}else if(!strcmp("generate", comando[0])){
 			
-			teste_generator();
+			if(parametros > 2){
+				int limite_operacoes = atoi(comando[1]);
+				if(limite_operacoes > -1 && limite_operacoes < 12){
+					int altura = atoi(comando[2]);
+					if(altura > -1 && altura < 10){					
+						teste_generator(altura, limite_operacoes);
+					}else{
+						printf("generate: não foi possível criar a árvore de diretórios: altura inválida.\n");
+					}
+				}else{
+					printf("generate: não foi possível criar a árvore de diretórios: quantidade de operações inválida.\n");
+				}
+			}else{
+				printf("generate: não foi possível criar a árovre de diretórios: espera por parâmetro.\n");
+			}
 		}else if(!strcmp("frag", comando[0])){
-			fragmentacao();
+
+			fragmentacao();		
 		}else{
 			printf("comando %s não encontrado.\n", comando[0]);
 		}

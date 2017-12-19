@@ -12,7 +12,7 @@ char *get_text(int len){
 
     char *text;
     switch(len){
-        case 250:
+        case 500:
             text = set_text(len, 'a');
             break;
         case 750:
@@ -39,22 +39,22 @@ char *get_text(int len){
 
 char random_algorithm(){
 
-    return "mmmmmmwwwwaaaaauuuuu"[random() % 20];
+    //return "mmmmwwwwaaaaaauuuuuu"[random() % 20];
+    return "mwamwmuwuauawmuauwum"[random() % 20];
 }
 
-void popular(char *path, int block, int deep, int *n_operacao){
+void popular(char *path, int block, int deep, int limite_operacoes, int *n_operacao){
 
-    int qtde_operacoes = 0; // contador de quantidade de operações para cada diretório.
-    int limite_operacoes = 10; // limite de subarquivos para cada diretório.    
+    int qtde_operacoes = 0; // contador de quantidade de operações para cada diretório.    
     int empty_entry; // recebe entrada vazias do diretório.
     int algoritmo; // recebe o char aleatório correspondente a um algoritmo.    
     int cont = 0; // conta quantos arquivos ou diretórios foram criados.
     int len; // recebe valor aleatório entre 0 e 4.
     int i;
-    int files[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // vetor para marcar posições de arquivos.
+    int *files = calloc(limite_operacoes, sizeof(int)); // vetor para marcar posições de arquivos.
     // Tamanho de arquivos
     int size_text[7]; // vetor de configuração de tamanho dos arquivos.
-    size_text[0] = 250;
+    size_text[0] = 500;
     size_text[1] = 750;
     size_text[2] = 1000;
     size_text[3] = 1250;
@@ -72,7 +72,7 @@ void popular(char *path, int block, int deep, int *n_operacao){
         algoritmo = random_algorithm();
         switch(algoritmo){ // defini qual operação será realizada (write, append, unlink e mkdir)
 
-            case 'a': // append                
+            case 'a': // append
                 for(i = 0; i < cont; ++i){
                     if(files[i] == 1){
                         simb = (char) (97 + i);
@@ -119,12 +119,13 @@ void popular(char *path, int block, int deep, int *n_operacao){
         }
         qtde_operacoes++;
     }
+    free(files);
 }
 
-void builder_tree(char *path, int block, int altura, int deep, int *n_operacao){
+void builder_tree(char *path, int block, int altura, int deep, int limite_operacoes, int *n_operacao){
 
     // populando o diretório.
-    popular(path, block, deep, n_operacao); 
+    popular(path, block, deep, limite_operacoes, n_operacao);
     if(altura == deep) // se estiver atingido o limite de altura da arvore, então retorne.
         return;
     dir_entry_t *dir = is_root(block);
@@ -136,28 +137,27 @@ void builder_tree(char *path, int block, int altura, int deep, int *n_operacao){
 
             sprintf(new_arg, "%s%s/", path, dir[ptr_entry].filename);  
             // chamando a recursão
-            builder_tree(new_arg, dir[ptr_entry].first_block, altura, deep + 1, n_operacao);
+            builder_tree(new_arg, dir[ptr_entry].first_block, altura, deep + 1, limite_operacoes, n_operacao);
         }       
     }
 }
 
-void teste_generator(){
+void teste_generator(int altura, int limite_operacoes){
 
     srandom(time(NULL));
     init(); // formatando o disco
     mkdir("/"); // criando o diretório barra.
-    int altura = 6; // altura da arvore de diretórios.
     
     // iniciando a árvore a partir da raiz.
      int n_operacao[4] = {0, 0, 0, 0}; // vetor para contabilizar a qtde de cada uma operação
-    builder_tree("/", ROOT_BLOCK, altura, 0, n_operacao);
+    builder_tree("/", ROOT_BLOCK, altura, 0, limite_operacoes, n_operacao);
     printf("appends:\t%d\n", n_operacao[0]);
     printf("mkdir:\t\t%d\n", n_operacao[1]);
     printf("unlinks:\t%d\n", n_operacao[2]);
     printf("writes:\t\t%d\n", n_operacao[3]);
 }
 
-void fragmentacao(){
+void fragmentacao(void){
 
     int single_block = 0; // contabiliza a quantidade de arquivos com tamanho <= 1024 (um bloco).
     int mult_block = 0; // contabiliza a quantidade de arquivos com tamanho > 1024.
