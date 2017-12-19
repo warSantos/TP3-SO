@@ -75,14 +75,7 @@ char pwd[500];
 /// Define o cluster atual (para fins de otimização).
 int current_block;
 
-/// Similar a strtok porém preserva a string.
-char *__strtok(char *str, char delim);
-
-// Retorna o ultimo token de um caminho.
-char *last_token(char *str, char delim);
-
-// Persiste um fluxo de dados no disco (fat_name).
-void persist_on_disk(void *data, int size_data, int block);
+/* ### FUNÇÕES DE LEITURA E ESCRITA ### */
 
 /*
  * Recebe um caminho e o bloco atual deste caminho. 
@@ -98,6 +91,16 @@ void persist_on_disk(void *data, int size_data, int block);
 */
 int findCluster(char **path, int bloco_atual, int *ptr_entry);
 
+/// Persiste um fluxo de dados no disco (fat_name).
+void persist_on_disk(void *data, int size_data, int block);
+
+/// Persiste um novo diretório no disco
+void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str);
+
+/// Configura os parâmetros de uma entrada de diretório.
+void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry, 
+		int block, int size, int attributes);
+
 /* 
  * Faz leitura de um cluster do "disco".
  * ### RETORNO ###
@@ -109,22 +112,6 @@ data_cluster *read_cluster(int block);
 /// É a função read_cluster com casting para (dir_entry *).
 dir_entry_t *is_root(int block);
 
-void init(void);
-
-void load(void);
-
-/// Imprime os atributos das entradas de um diretório
-void lista_dir(dir_entry_t *dir, char oculto, char info);
-
-/*
- * Lista as entradas de diretório de um diretório.
- * Ex.: ls /home
- * ### PARÂMETROS ### 
- * -o: mostra diretórios ocultos.
- * Ex.: ls -o /home
-*/
-void ls(char *arg, char oculto, char info);
-
 /*
  * Verifica se existe espaço para inserir mais uma entrada no diretório.
  * ### RETORNO ###
@@ -132,6 +119,8 @@ void ls(char *arg, char oculto, char info);
  * -1: não existe mais posições livres 
 */
 int free_entry(dir_entry_t *t);
+
+/* ### FUNÇÕES DE MANIPULAÇÃO DE BLOCOS ### */
 
 /*
  * Procura blocos livres em O(n), utilizada para fins de debug.
@@ -141,15 +130,49 @@ int free_entry(dir_entry_t *t);
 */
 int free_blocks(int init);
 
-/// Configura os parâmetros de uma entrada de diretório.
-void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry, 
-		int block, int size, int attributes);
+/*
+ * Retorna a quantidade de blocos necessários por um arquivo.
+ * a partir do tamanho de sua string.
+*/
+int size_in_block(int n_bytes);
+
+/*
+ * Retorna a quantidade de espaço ocupado por uma string em 
+ * blocos e mapeia os blocos disponíveis em um vetor. 
+ * Retorna -1 quando não há espaço suficiente.
+*/
+int limit_disk(char *arg, char *path, short int *buff);
+
+/* ### FUNÇÕES DE SUPORTE ###*/
 
 /// Cria um diretório padrão. 
 dir_entry_t *new_dir(int block, int block_parent_dir);
 
-/// Persiste um novo diretório no disco
-void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str);
+/// Imprime os atributos das entradas de um diretório
+void lista_dir(dir_entry_t *dir, char oculto, char info);
+
+/// Similar a strtok porém preserva a string.
+char *__strtok(char *str, char delim);
+
+/// Retorna o ultimo token de um caminho.
+char *last_token(char *str, char delim);
+
+/* ### FUNÇÕES DO SISTEMA DE ARQUIVO ### */
+
+/// Formata o disco (fat.part)
+void init(void);
+
+/// Carrega o diretório ROOT e a FAT  para memória.
+void load(void);
+
+/*
+ * Lista as entradas de diretório de um diretório.
+ * Ex.: ls /home
+ * ### PARÂMETROS ### 
+ * -o: mostra diretórios ocultos.
+ * Ex.: ls -o /home
+*/
+void ls(char *arg, char oculto, char info);
 
 /*
  * Recebe o caminho e o nome do diretório a ser criado.
@@ -164,19 +187,6 @@ void mkdir(char *arg);
  * o diretório base é tomado como referência.
 */
 int create_file(char *arg, int size_file, int ignore);
-
-/*
- * Retorna a quantidade de blocos necessários por um arquivo.
- * a partir do tamanho de sua string.
-*/
-int size_in_block(int n_bytes);
-
-/*
- * Retorna a quantidade de espaço ocupado por uma string em 
- * blocos e mapeia os blocos disponíveis em um vetor. 
- * Retorna -1 quando não há espaço suficiente.
-*/
-int limit_disk(char *arg, char *path, short int *buff);
 
 /*
  * Recebe o caminho e o nome do arquivo a ser criado.
@@ -208,9 +218,5 @@ void __read(char *arg);
  * Diretório são removidos somente se estiverem vazios.
 */
 void __unlink(char *arg);
-
-/// DEBUG MACROS
-
-#define stage(N) printf("Ponto: %d\n", N);
 
 #endif
