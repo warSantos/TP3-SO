@@ -58,3 +58,9 @@ nbproject
 teste_gerado.txt
 fat.part
 fat
+
+doc/main\.log
+
+doc/main\.tex\.backup
+
+doc/main\.aux
