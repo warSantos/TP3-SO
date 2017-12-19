@@ -1,0 +1,92 @@
+fragmentação por arquivo e 
+a fragmentação média dos arquivos
+
+3 3
+
+Qtde de arquivos e diretórios......: 1
+Arquivos <= 1024 bytes.............: 0
+Arquivos > 1024 bytes..............: 1
+Acessos contíguos..................: 1
+Acessos não contíguos..............: 0
+Média de arquivos segmentados......: 0.00
+Média de seguimentação por arquivo.: 0.00
+
+3 6
+
+Qtde de arquivos e diretórios......: 13
+Arquivos <= 1024 bytes.............: 9
+Arquivos > 1024 bytes..............: 4
+Acessos contíguos..................: 4
+Acessos não contíguos..............: 0
+Média de arquivos segmentados......: 0.00
+Média de seguimentação por arquivo.: 0.00
+
+3 9
+
+Qtde de arquivos e diretórios......: 73
+Arquivos <= 1024 bytes.............: 58
+Arquivos > 1024 bytes..............: 15
+Acessos contíguos..................: 17
+Acessos não contíguos..............: 1
+Média de arquivos segmentados......: 0.01
+Média de seguimentação por arquivo.: 0.07
+
+6 3
+
+Qtde de arquivos e diretórios......: 27
+Arquivos <= 1024 bytes.............: 19
+Arquivos > 1024 bytes..............: 8
+Acessos contíguos..................: 8
+Acessos não contíguos..............: 2
+Média de arquivos segmentados......: 0.07
+Média de seguimentação por arquivo.: 0.25
+
+6 6
+
+Qtde de arquivos e diretórios......: 86
+Arquivos <= 1024 bytes.............: 58
+Arquivos > 1024 bytes..............: 28
+Acessos contíguos..................: 35
+Acessos não contíguos..............: 11
+Média de arquivos segmentados......: 0.13
+Média de seguimentação por arquivo.: 0.39
+
+6 9
+
+Qtde de arquivos e diretórios......: 134
+Arquivos <= 1024 bytes.............: 93
+Arquivos > 1024 bytes..............: 41
+Acessos contíguos..................: 49
+Acessos não contíguos..............: 9
+Média de arquivos segmentados......: 0.07
+Média de seguimentação por arquivo.: 0.22
+
+9 3
+
+Qtde de arquivos e diretórios......: 267
+Arquivos <= 1024 bytes.............: 187
+Arquivos > 1024 bytes..............: 80
+Acessos contíguos..................: 82
+Acessos não contíguos..............: 45
+Média de arquivos segmentados......: 0.17
+Média de seguimentação por arquivo.: 0.56
+
+9 6
+
+Qtde de arquivos e diretórios......: 1382
+Arquivos <= 1024 bytes.............: 927
+Arquivos > 1024 bytes..............: 455
+Acessos contíguos..................: 463
+Acessos não contíguos..............: 218
+Média de arquivos segmentados......: 0.16
+Média de seguimentação por arquivo.: 0.48
+
+9 9
+
+Qtde de arquivos e diretórios......: 2802
+Arquivos <= 1024 bytes.............: 1881
+Arquivos > 1024 bytes..............: 921
+Acessos contíguos..................: 930
+Acessos não contíguos..............: 418
+Média de arquivos segmentados......: 0.15
+Média de seguimentação por arquivo.: 0.45

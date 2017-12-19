@@ -210,9 +210,9 @@ void shell(void){
 			if(parametros > 2){
 				int begin, end;
 				end = atoi(comando[2]);
-				if(end > 0 && end < 4086){
+				if(end >= 0 && end < 4086){
 					begin = atoi(comando[1]);
-					if(begin > 0 && begin < end){
+					if(begin >= 0 && begin < end){
 						for(i = begin; i < end; ++i){
 							printf("indice: %d, próximo: %d\n", i, fat[i]);
 						}
@@ -229,9 +229,9 @@ void shell(void){
 			
 			if(parametros > 2){
 				int limite_operacoes = atoi(comando[1]);
-				if(limite_operacoes > -1 && limite_operacoes < 12){
+				if(limite_operacoes > -1 && limite_operacoes < 25){
 					int altura = atoi(comando[2]);
-					if(altura > -1 && altura < 10){					
+					if(altura > -1 && altura < 10){			
 						teste_generator(altura, limite_operacoes);
 					}else{
 						printf("generate: não foi possível criar a árvore de diretórios: altura inválida.\n");
