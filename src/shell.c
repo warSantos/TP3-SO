@@ -106,7 +106,7 @@ char **format(char *str, int *n_parametros){
 
 void shell(void){
 	
-	char *str = malloc(1025);
+	char *str = malloc(4096);
 	mkdir("/");
 	__write("teste write", "/file");
 	//append("teste append", "/file");
@@ -117,7 +117,8 @@ void shell(void){
 		int parametros, i;
 		while(str[0] == '\0'){				
 			printf("> ");
-			scanf("%[^\n]", str);
+			scanf("%4096[^\n]", str);
+			str[4095] = '\0';
 			__fpurge(stdin);
 		}
 		comando = format(str, &parametros);	

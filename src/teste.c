@@ -194,6 +194,7 @@ void fragmentacao(){
     printf("Arquivos > 1024 bytes..............: %d\n", mult_block);
     printf("Acessos contíguos..................: %d\n", n_adj);
     printf("Acessos não contíguos..............: %d\n", n_not_adj);
+    printf("Média de arquivos segmentados......: %.2f\n", mult_block / (float) (mult_block + single_block));
     printf("Média de seguimentação por arquivo.: %.2f\n", (n_not_adj / (float) mult_block));
     free(vetor);
 }
