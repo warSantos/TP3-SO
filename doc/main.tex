@@ -19,6 +19,25 @@
 	
 	O objetivo principal é realizar a simulação e verificar a granularidade do disco ao final de uma série de comandos, a fim de verificar a fragmentação gerada.
     
+\section{Simulador FAT-16} 
+	A proposta deste simulador é providenciar recursos suficientes para analisar o desempenho do sistema de arquivos FAT-16, em relação a pesquisa e alocação de memória secundária. A memória secundária será por completa simulada através de um arquivo de texto fornecendo acesso aleatório. 
+
+\section{Sistema de Arquivos} 
+	Sistema de arquivos é uma camada de software entre o hardware e o sistema operacional, responsável por criar uma abstração de hierarquia de arquivos para facilitar a manipulação pelo sistema operacional e também pelos usuários. O sistema de arquivos defini como uma partição organiza seus arquivos, quais recursos estão disponíveis, limite no tamanho de arquivos e diretórios, atributos de um arquivo, sistema de proteção contra falhas dentre outros parâmetros não relevantes ao contexto. Existem vários sistemas de arquivos para diversas situações e neste trabalho será abordado o sistema FAT-16, presente no sistema MS-DOS e Windows 95. 
+
+\section{FAT - File Allocation Table} 
+	FAT, consiste em um sistema de arquivos dentre vários outros existentes \textit{(vfat, ext, ntfs, ufs etc...)}, atualmente mais utilizado em mídias de menor capacidade como pendrives e memória para disposistivos com sistemas embarcados isso devido a algumas limitações como a baixa segurança contra perda de dados, limitação no tamanho de arquivos (limite de 2GB para FAT-16 com bloco de 32KB) e principalmente o alto consumo de memória necessário para gerenciar mídias com capacidade de armazenamento elevadas (Disco Rígidos atuais). 
+	A gerência de arquivos é feita através de uma tabela situada em uma região separada na partição contendo referência para todos os blocos de dados.  
+
+\subsection{Fragmentação (Alocação Contígua x FAT)} 
+	Considerado fundamental, o acesso á aleatório a memória é um recurso que permite a um usuário alterar o estado de um arquivo persistido. Diferente da alocação contígua, um arquivo pode ter seu conteúdo expandido, removido ou até mesmo exlcuído da mídia de armazenamento sem que gere grande desperdício de espaço, ocorrido no método de alocação contígua onde o surgimento lacunas (trechos de memória não utilizadas) é comum. A existência de lacunas dificulta a reutilização da memória logo que é provinda geralmente pela exclusão de arquivos com tamanhos distintos, raramente encontra-se outro arquivo com o tamanho exato ao do removido para ocupar o espaço libreado, e este fator causa o problema da \textbf{segmentação externa}. 
+	Apesar da melhor gestão de memória apresentada, a leitura em sistemas de alocação contígua é mais eficiente, devido a disposição linear dos dados na mídia. Esta forma de alocação evita gastos excessivos como o movimento do braço de um disco rígido para diferentes regiões em curtos intervalos de tempo, necessário para lidar com a \textbf{segmentação interna} do arquivo. Portanto pode-se dizer que a grande vantagem da FAT em economia de memória é descontada na velocidade de pesquisa em relação a alocação contígua. 
+
+\subsection{Acesso Aleatório} 
+	Outra vantagem é a facilidade na pesquisa, para acessar regiões aleatórias de um arquivo o mesmo não precisa de ser enviado por completo para memória, permitindo que trechos menores do arquivo sejam carregados conforme a necessidade, dispensando o gasto computacional para encontrar trechos específicos, o que é comum em sistemas como o presente em CD's-ROM (Read Only Memory), onde é sempre necessário uma pesquisa linear pelo CD para encontrar o dado desejado. Para dispositivos com memória reduzida esta qualidade é um diferencial crucial. 
+
+\subsection{Disposição dos arquivos}
+    
 \section{Conclusão}
     
 \end{document}
