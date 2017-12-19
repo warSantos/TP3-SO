@@ -22,7 +22,7 @@
 #define ROOT_ENTRY(ENTRY_DIR) (sizeof(boot_block) + sizeof(fat) + (ENTRY_DIR) * 32)
 #define fat_name	"fat.part"
 
-// para divisão e multiplicação.
+/// para divisão e multiplicação.
 int k_bytes;
 
 typedef struct _dir_entry_t
@@ -72,8 +72,31 @@ char *__strtok(char *str, char delim);
 // Retorna o ultimo token de um caminho.
 char *last_token(char *str, char delim);
 
-// Persiste um fluxo de dados no disco (fat_name).
+
+/* ### Funções pesquisa e leitura do disco. ### */
+
+/// Persiste um fluxo de dados no disco (fat_name).
 void persist_on_disk(void *data, int size_data, int block);
+
+/* 
+ * Faz leitura de um cluster do "disco".
+ * ### RETORNO ###
+ * retornar um ponteiro data_cluster *,
+ * ou NULL caso o endereço vá para fora do disco.
+*/
+data_cluster *read_cluster(int block);
+
+/// É a função read_cluster com casting para (dir_entry *).
+dir_entry_t *is_root(int block);
+
+/// Configura os parâmetros de uma entrada de diretório.
+void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry, 
+		int block, int size, int attributes);
+
+/// Persiste um novo diretório no disco
+void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str);
+
+/* ### Funções de suporte e utilidades. ### */
 
 /*
  * Recebe um caminho e o bloco atual deste caminho. 
@@ -89,32 +112,8 @@ void persist_on_disk(void *data, int size_data, int block);
 */
 int findCluster(char **path, int bloco_atual, int *ptr_entry);
 
-/* 
- * Faz leitura de um cluster do "disco".
- * ### RETORNO ###
- * retornar um ponteiro data_cluster *,
- * ou NULL caso o endereço vá para fora do disco.
-*/
-data_cluster *read_cluster(int block);
-
-/// É a função read_cluster com casting para (dir_entry *).
-dir_entry_t *is_root(int block);
-
-void init();
-
-void load();
-
 /// Imprime os atributos das entradas de um diretório
 void lista_dir(dir_entry_t *dir, char oculto, char info);
-
-/*
- * Lista as entradas de diretório de um diretório.
- * Ex.: ls /home
- * ### PARÂMETROS ### 
- * -o: mostra diretórios ocultos.
- * Ex.: ls -o /home
-*/
-void ls(char *arg, char oculto, char info);
 
 /*
  * Verifica se existe espaço para inserir mais uma entrada no diretório.
@@ -124,6 +123,11 @@ void ls(char *arg, char oculto, char info);
 */
 int free_entry(dir_entry_t *t);
 
+/// Cria um diretório padrão. 
+dir_entry_t *new_dir(int block, int block_parent_dir);
+
+/* ### Funções de manipulação de blocos. ### */
+
 /*
  * Procura blocos livres em O(n), utilizada para fins de debug.
  * ## RETORNO ###
@@ -132,15 +136,35 @@ int free_entry(dir_entry_t *t);
 */
 int free_blocks(int init);
 
-/// Configura os parâmetros de uma entrada de diretório.
-void set_dir_entry(dir_entry_t *parent_dir, int block_parent_dir, char *str, int new_entry, 
-		int block, int size, int attributes);
+/*
+ * Retorna a quantidade de blocos necessários por um arquivo.
+ * a partir do tamanho de sua string.
+*/
+int size_in_block(int n_bytes);
 
-/// Cria um diretório padrão. 
-dir_entry_t *new_dir(int block, int block_parent_dir);
+/*
+ * Retorna a quantidade de espaço ocupado por uma string em 
+ * blocos e mapeia os blocos disponíveis em um vetor. 
+ * Retorna -1 quando não há espaço suficiente.
+*/
+int limit_disk(char *arg, char *path, short int *buff);
 
-/// Persiste um novo diretório no disco
-void create_dir(dir_entry_t *parent_dir, int block_parent_dir, char *str);
+/* ### Funções do sistema de arquivo. ### */
+
+/// Formata o disco 
+void init();
+
+/// Carrega a FAT e o diretório ROOT para raiz.
+void load();
+
+/*
+ * Lista as entradas de diretório de um diretório.
+ * Ex.: ls /home
+ * ### PARÂMETROS ### 
+ * -o: mostra diretórios ocultos.
+ * Ex.: ls -o /home
+*/
+void ls(char *arg, char oculto, char info);
 
 /*
  * Recebe o caminho e o nome do diretório a ser criado.
@@ -155,19 +179,6 @@ void mkdir(char *arg);
  * o diretório base é tomado como referência.
 */
 int create_file(char *arg, int size_file, int ignore);
-
-/*
- * Retorna a quantidade de blocos necessários por um arquivo.
- * a partir do tamanho de sua string.
-*/
-int size_in_block(int n_bytes);
-
-/*
- * Retorna a quantidade de espaço ocupado por uma string em 
- * blocos e mapeia os blocos disponíveis em um vetor. 
- * Retorna -1 quando não há espaço suficiente.
-*/
-int limit_disk(char *arg, char *path, short int *buff);
 
 /*
  * Recebe o caminho e o nome do arquivo a ser criado.
@@ -199,17 +210,5 @@ void __read(char *arg);
  * Diretório são removidos somente se estiverem vazios.
 */
 void __unlink(char *arg);
-
-/// ### GERENCIAMENTO DE BLOCOS ####
-
-int available_block();
-
-void clear_block(int index);
-
-int allocate_block();
-
-/// DEBUG MACROS
-
-#define stage(N) printf("Ponto: %d\n", N);
 
 #endif
