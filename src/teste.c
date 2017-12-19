@@ -198,17 +198,3 @@ void fragmentacao(){
     printf("Média de seguimentação por arquivo.: %.2f\n", (n_not_adj / (float) mult_block));
     free(vetor);
 }
-
-/*
-    enquanto nao for atingido o final da fat
-        se encontrar um bloco que aponta para algum lugar
-                && e este bloco não tiver sido marcado
-            se ele for um arquivo único
-                aumente 1 nos arquivos com um bloco
-            se não
-                enquanto não chegar no seu ultimo bloco
-                    se realizar um acesso nao adjacente
-                        acesso_nao_adjacente++
-                    se nao
-                        acesso_contiguo++
-*/
